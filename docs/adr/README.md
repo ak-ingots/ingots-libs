@@ -8,3 +8,4 @@ from [template.md](template.md).
 |---|---|---|
 | [0001](0001-record-architecture-decisions.md) | Record architecture decisions | Accepted |
 | [0002](0002-target-linux-macos-as-by-product.md) | Target Linux; macOS as a by-product | Accepted |
+| [0003](0003-flat-layout-and-mandatory-library-build.md) | Flat layout; libraries are tested as built wheels | Accepted |

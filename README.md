@@ -10,7 +10,7 @@ them, their changes never show up here.
 ```
 ingots-libs/          # this repository
 ├── repos.txt         # ecosystem repositories, dependencies first
-├── Makefile          # clone / pull / status / all / prs / ci
+├── Makefile          # clone / pull / status / check / prs / ci
 ├── llms.txt          # entry point for AI agents
 └── logo-gen/         # independent repositories, cloned by `make clone`
 ```
@@ -31,7 +31,7 @@ dependencies), to this table and to `llms.txt`.
 git clone https://github.com/ak-ingots/ingots-libs.git
 cd ingots-libs
 make clone      # missing repositories, via gh
-make all        # gen + lint + test everywhere
+make check      # lint + test everywhere
 make status     # what is changed or unpushed, across all repositories
 ```
 

@@ -11,4 +11,4 @@
 ## Optional
 
 - [Repository list](repos.txt): clone order, dependencies first
-- [Meta commands](Makefile): clone, pull, status, all, prs, ci
+- [Meta commands](Makefile): clone, pull, status, check, prs, ci

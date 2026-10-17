@@ -1,5 +1,7 @@
 # ingots-libs
 
+![Ingots logo](https://raw.githubusercontent.com/ak-ingots/logo-gen/main/final-pyramid@256.png)
+
 Meta repository of the Ingots ecosystem: the catalogue of packages, the
 principles they share, and commands over all of them. Package repositories
 are cloned next to this file and stay independent: this repository ignores
@@ -10,13 +12,14 @@ ingots-libs/          # this repository
 ├── repos.txt         # ecosystem repositories, dependencies first
 ├── Makefile          # clone / pull / status / all / prs / ci
 ├── llms.txt          # entry point for AI agents
-└── <repo>/           # independent repositories, cloned by `make clone`
+└── logo-gen/         # independent repositories, cloned by `make clone`
 ```
 
 ## Catalogue
 
 | Repository | Distributions | Depends on | Status |
 |---|---|---|---|
+| [logo-gen](https://github.com/ak-ingots/logo-gen) | — (tool, not published) | — | done: the ecosystem logo |
 
 A new package: create the repository in
 [ak-ingots](https://github.com/ak-ingots), add it to `repos.txt` (after its

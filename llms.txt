@@ -6,6 +6,7 @@
 ## Ecosystem
 
 - [Ecosystem overview](README.md): repositories and how to work with them
+- [Architecture decisions](docs/adr/README.md): ecosystem-wide ADRs (platforms, process)
 - [logo-gen](https://github.com/ak-ingots/logo-gen/blob/main/README.md): the ecosystem logo and its generator (3D ingot scene -> SVG/PNG)
 
 ## Optional

@@ -6,6 +6,7 @@
 !/llms.txt
 !/repos.txt
 !/Makefile
+!/docs/
 
 .idea/
 .vscode/

@@ -12,8 +12,11 @@ ingots-libs/          # this repository
 ├── repos.txt         # ecosystem repositories, dependencies first
 ├── Makefile          # clone / pull / status / check / prs / ci
 ├── llms.txt          # entry point for AI agents
+├── docs/adr/         # ecosystem-wide architecture decisions
 └── logo-gen/         # independent repositories, cloned by `make clone`
 ```
+
+Ecosystem-wide decisions are recorded in [docs/adr](docs/adr/README.md).
 
 ## Catalogue
 

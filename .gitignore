@@ -1,0 +1,12 @@
+# Meta repository: everything here is ignored except its own files.
+# Sibling directories are independent repositories (see repos.txt).
+/*
+!/.gitignore
+!/README.md
+!/llms.txt
+!/repos.txt
+!/Makefile
+
+.idea/
+.vscode/
+.DS_Store

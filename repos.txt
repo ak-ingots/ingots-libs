@@ -1,0 +1,2 @@
+# Repositories of the ecosystem, cloned next to this file.
+# Order matters: a repository comes after the ones it depends on.

@@ -1,0 +1,13 @@
+# Ingots
+
+> The Ingots ecosystem: a set of independent packages in the
+> [ak-ingots](https://github.com/ak-ingots) organization.
+
+## Ecosystem
+
+- [Ecosystem overview](README.md): repositories and how to work with them
+
+## Optional
+
+- [Repository list](repos.txt): clone order, dependencies first
+- [Meta commands](Makefile): clone, pull, status, all, prs, ci

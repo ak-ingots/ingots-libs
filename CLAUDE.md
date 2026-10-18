@@ -58,7 +58,10 @@ Decided in [docs/adr](docs/adr/README.md); the essentials:
   methods, `Base` for incomplete classes, prefixed mixin members (0007).
 - Tooling: uv with `uv_build`, `make` as the entrypoint (`make check` runs
   every check, `make all` builds), stdlib `unittest`, black, flake8,
-  `mypy --strict`.
+  `mypy --strict`. Test coverage is a check too: `make coverage` (coverage.py,
+  `branch = true`, `fail_under = 99`, `if t.TYPE_CHECKING:` and
+  `raise NotImplementedError` excluded) runs in `make check` and in CI; copy
+  the setup from `ingots`.
 - Documentation: the meta repository lives on GitHub only. Packages publish
   Sphinx docs on Read the Docs: `ingots` is the parent project
   (`https://ingots.readthedocs.io/`), every addon a subproject under it

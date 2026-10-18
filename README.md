@@ -13,7 +13,8 @@ ingots-libs/          # this repository
 ├── Makefile          # clone / pull / status / check / prs / ci
 ├── llms.txt          # entry point for AI agents
 ├── docs/adr/         # ecosystem-wide architecture decisions
-└── logo-gen/         # independent repositories, cloned by `make clone`
+├── logo-gen/         # independent repositories, cloned by `make clone`
+└── ingots/
 ```
 
 Ecosystem-wide decisions are recorded in [docs/adr](docs/adr/README.md).
@@ -23,6 +24,7 @@ Ecosystem-wide decisions are recorded in [docs/adr](docs/adr/README.md).
 | Repository | Distributions | Depends on | Status |
 |---|---|---|---|
 | [logo-gen](https://github.com/ak-ingots/logo-gen) | — (tool, not published) | — | done: the ecosystem logo |
+| [ingots](https://github.com/ak-ingots/ingots) | `ingots` (not published yet) | — | rewrite started: empty package, dev automation |
 
 A new package: create the repository in
 [ak-ingots](https://github.com/ak-ingots), add it to `repos.txt` (after its

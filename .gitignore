@@ -3,6 +3,7 @@
 /*
 !/.gitignore
 !/README.md
+!/CLAUDE.md
 !/llms.txt
 !/repos.txt
 !/Makefile

@@ -6,8 +6,11 @@
 ## Ecosystem
 
 - [Ecosystem overview](README.md): repositories and how to work with them
-- [Architecture decisions](docs/adr/README.md): ecosystem-wide ADRs (process, platforms, layout)
+- [Agent rules](CLAUDE.md): GitHub access, commit approval, ecosystem rules in short
+- [Architecture decisions](docs/adr/README.md): ecosystem-wide ADRs (process, platforms, layout, composition, contract tests, design principles)
+- [Extension composition concepts](docs/design/extension-composition/README.md): the dynamic, static and slots prototypes compared for ADR 0004
 - [logo-gen](https://github.com/ak-ingots/logo-gen/blob/main/README.md): the ecosystem logo and its generator (3D ingot scene -> SVG/PNG)
+- [ingots](https://github.com/ak-ingots/ingots/blob/main/README.md): the framework core - statically typed composition of applications from reusable addons; being rewritten from scratch (ADR 0004)
 
 ## Optional
 

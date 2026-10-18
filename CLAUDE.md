@@ -35,6 +35,16 @@ Prepare the change, show a summary and the proposed message, and wait for an
 explicit approval of that commit; one approval does not extend to the next.
 This holds in every repository of the ecosystem.
 
+## History
+
+- Linear history only: no merge commits; main moves by `--ff-only`.
+- Development may take many small commits; what lands on `main` is squashed
+  into commits that each bring one reviewable change, readable from its diff.
+- While only the user and Claude work on a repository, work goes to `main`
+  directly, without branches or pull requests; the same rules apply. Run
+  `make check` before pushing: on a direct push `cl-check` in CI compares
+  `main` with itself and passes, so the news fragment is checked locally only.
+
 ## Ecosystem rules
 
 Decided in [docs/adr](docs/adr/README.md); the essentials:

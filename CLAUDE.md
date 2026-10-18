@@ -44,7 +44,8 @@ Decided in [docs/adr](docs/adr/README.md); the essentials:
   repository (0003).
 - Composition by inheritance and typed slots (0004); addons ship contract
   tests run by every consumer (0005); design principles and their priority
-  (0006).
+  (0006); code layout and naming: member and module order, verbs for
+  methods, `Base` for incomplete classes, prefixed mixin members (0007).
 - Tooling: uv with `uv_build`, `make` as the entrypoint (`make check` runs
   every check, `make all` builds), stdlib `unittest`, black, flake8,
   `mypy --strict`.

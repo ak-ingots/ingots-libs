@@ -12,3 +12,4 @@ from [template.md](template.md).
 | [0004](0004-static-composition-with-typed-slots.md) | Static composition of extensions with typed slots | Accepted |
 | [0005](0005-addons-ship-contract-tests.md) | Addons ship contract tests; consumers run them | Accepted |
 | [0006](0006-design-principles.md) | Design principles: SOLID, DRY, KISS, YAGNI, the Zen of Python | Accepted |
+| [0007](0007-code-layout-and-naming.md) | Code layout and naming | Accepted |

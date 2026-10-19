@@ -30,20 +30,29 @@ git uses `gh auth git-credential`, so pushes pick the token up too. Never read
 
 ## Commits
 
-Never commit, amend, push, tag or rewrite history on your own initiative.
-Prepare the change, show a summary and the proposed message, and wait for an
-explicit approval of that commit; one approval does not extend to the next.
-This holds in every repository of the ecosystem.
+Never commit, amend, push, open a pull request, tag or rewrite history on
+your own initiative. Prepare the change, show a summary and the proposed
+message, and wait for an explicit approval of that commit; one approval does
+not extend to the next. Never merge a pull request: the user does
+(`gh pr merge` is denied). This holds in every repository of the ecosystem.
 
 ## History
 
-- Linear history only: no merge commits; main moves by `--ff-only`.
-- Development may take many small commits; what lands on `main` is squashed
-  into commits that each bring one reviewable change, readable from its diff.
-- While only the user and Claude work on a repository, work goes to `main`
-  directly, without branches or pull requests; the same rules apply. Run
-  `make check` before pushing: on a direct push `cl-check` in CI compares
-  `main` with itself and passes, so the news fragment is checked locally only.
+- `main` and `release/X.Y` are protected in every repository by the ruleset
+  "Protect main and release branches": no direct push, force push or
+  deletion; changes land through pull requests only, squash-merged, keeping
+  the history linear. Where a repository has CI, its checks must pass on a
+  branch up to date with `main`.
+- Every change goes on its own branch and pull request, one reviewable change
+  each. The squash commit takes the PR title and description, so write them
+  as the commit message, attribution included; keep the branch to one commit
+  so the PR shows what will land.
+- Before pushing a branch, rebase it onto the current `main` and run
+  `make check`; pushing what CI will reject only wastes a run.
+- After the user merges, switch to `main`, pull and delete the local branch.
+- A new repository gets the same ruleset and merge settings: squash merging
+  only, PR title and description as the commit, head branches deleted after
+  merge.
 
 ## Ecosystem rules
 

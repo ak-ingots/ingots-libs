@@ -1,0 +1,25 @@
+name: ci
+
+# The meta repository's own check: the design prototypes run, and mypy
+# reports exactly the errors they mark. Every check is a `make` target.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  prototypes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.0  # no floating major tags since v8
+      - run: make check-prototypes

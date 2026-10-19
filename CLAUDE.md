@@ -13,6 +13,9 @@ whitelists them). Sibling directories listed in `repos.txt` are independent
 git repositories; `make clone`, `pull`, `status`, `check`, `prs`, `ci` run
 over all of them. Directories not in `repos.txt` (e.g. `ingots-current/`, a
 clone of the previous implementation, or `designs/`) are local scratch.
+`make check-prototypes` is this repository's own check, the one its CI runs:
+the design prototypes run, and mypy reports exactly the lines they mark
+`# error:`.
 
 ## GitHub access
 
@@ -45,8 +48,10 @@ not extend to the next. Never merge a pull request: the user does
   branch up to date with `main`.
 - Every change goes on its own branch and pull request, one reviewable change
   each. The squash commit takes the PR title and description, so write them
-  as the commit message, attribution included; keep the branch to one commit
-  so the PR shows what will land.
+  as the commit message, lines within 72 columns; keep the branch to one
+  commit so the PR shows what will land. The `Co-Authored-By` trailer goes
+  in the branch commit only: GitHub carries it to the end of the squash
+  commit, after the description.
 - Before pushing a branch, rebase it onto the current `main` and run
   `make check`; pushing what CI will reject only wastes a run.
 - After the user merges, switch to `main`, pull and delete the local branch.

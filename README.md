@@ -24,11 +24,25 @@ Ecosystem-wide decisions are recorded in [docs/adr](docs/adr/README.md).
 | Repository | Distributions | Depends on | Status |
 |---|---|---|---|
 | [logo-gen](https://github.com/ak-ingots/logo-gen) | — (tool, not published) | — | done: the ecosystem logo |
-| [ingots](https://github.com/ak-ingots/ingots) | `ingots` (not published yet) | — | rewrite started: empty package, dev automation |
+| [ingots](https://github.com/ak-ingots/ingots) | `ingots` (not published yet) | — | rewrite in progress: the PUER core, the runner and the command line, the settings of `ingots.defaults` |
 
 A new package: create the repository in
 [ak-ingots](https://github.com/ak-ingots), add it to `repos.txt` (after its
-dependencies), to this table and to `llms.txt`.
+dependencies), to this table and to `llms.txt`. An addon is named
+`ingot-<name>`, in the singular: one ingot, an extension of the `ingots`
+framework, not a framework of its own.
+
+## Ideas
+
+Packages not started yet, kept here until they get a repository.
+
+- `ingot-settings`: sources and formats for the settings of `ingots.defaults`
+  beyond the standard library. First YAML files (a `YamlFormat` slot of the
+  file loader, on PyYAML); later loaders for cloud secret managers. One
+  package, every integration behind an extra of its own, so an application
+  installs only what it uses: `pip install "ingot-settings[yaml,aws,gcp]"`.
+  Each integration lives in its own module, the only one importing its
+  dependency; the package imports none of them.
 
 ## Working with the ecosystem
 

@@ -7,10 +7,14 @@
 
 - [Ecosystem overview](README.md): repositories and how to work with them
 - [Agent rules](CLAUDE.md): GitHub access, commit approval, ecosystem rules in short
-- [Architecture decisions](docs/adr/README.md): ecosystem-wide ADRs (process, platforms, layout, composition, contract tests, design principles)
+- [Architecture decisions](docs/adr/README.md): ecosystem-wide ADRs (process, platforms, layout, composition, contract tests, design principles, code layout)
 - [Extension composition concepts](docs/design/extension-composition/README.md): the dynamic, static and slots prototypes compared for ADR 0004
 - [logo-gen](https://github.com/ak-ingots/logo-gen/blob/main/README.md): the ecosystem logo and its generator (3D ingot scene -> SVG/PNG)
-- [ingots](https://github.com/ak-ingots/ingots/blob/main/README.md): the framework core - statically typed composition of applications from reusable addons; being rewritten from scratch (ADR 0004)
+- [ingots](https://github.com/ak-ingots/ingots/blob/main/README.md): the framework core - statically typed composition of applications from reusable addons (ADR 0004); rewritten from scratch, on PyPI since 0.30.0
+- [ingot-settings](https://github.com/ak-ingots/ingot-settings/blob/main/README.md): an addon with sources and formats for the settings of `ingots.defaults` beyond the standard library; the skeleton so far, YAML files next
+- [ingot-grpcio](https://github.com/ak-ingots/ingot-grpcio/blob/main/README.md): an addon integrating grpcio, the gRPC library of Google; the skeleton so far, servers and clients next
+- [ingot-pymongo](https://github.com/ak-ingots/ingot-pymongo/blob/main/README.md): an addon integrating PyMongo, the official driver of MongoDB, on its asynchronous API; the skeleton so far
+- [ingot-sql](https://github.com/ak-ingots/ingot-sql/blob/main/README.md): an addon for SQL databases - typed tables, typical queries, raw SQL at hand; the skeleton so far
 
 ## Optional
 

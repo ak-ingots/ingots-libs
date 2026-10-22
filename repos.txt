@@ -2,3 +2,7 @@
 # Order matters: a repository comes after the ones it depends on.
 logo-gen
 ingots
+ingot-settings
+ingot-grpcio
+ingot-pymongo
+ingot-sql

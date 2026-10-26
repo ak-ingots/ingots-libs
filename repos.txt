@@ -6,3 +6,4 @@ ingot-settings
 ingot-grpcio
 ingot-pymongo
 ingot-sql
+ingot-auth

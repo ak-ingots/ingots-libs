@@ -57,7 +57,8 @@ not extend to the next. Never merge a pull request: the user does
 - After the user merges, switch to `main`, pull and delete the local branch.
 - A new repository gets the same ruleset and merge settings: squash merging
   only, PR title and description as the commit, head branches deleted after
-  merge.
+  merge, the update of a PR branch always suggested. The ruleset requires
+  every job of its CI by name: GitHub adds none on its own.
 
 ## Ecosystem rules
 

@@ -29,6 +29,7 @@ Ecosystem-wide decisions are recorded in [docs/adr](docs/adr/README.md).
 | [ingot-grpcio](https://github.com/ak-ingots/ingot-grpcio) | [`ingot-grpcio`](https://pypi.org/project/ingot-grpcio/) 0.9.0 | `ingots` | the skeleton of the addon integrating grpcio; next, its servers and clients |
 | [ingot-pymongo](https://github.com/ak-ingots/ingot-pymongo) | [`ingot-pymongo`](https://pypi.org/project/ingot-pymongo/) 0.10.0 | `ingots` | the skeleton of the addon integrating PyMongo; next, the clients of MongoDB servers |
 | [ingot-sql](https://github.com/ak-ingots/ingot-sql) | [`ingot-sql`](https://pypi.org/project/ingot-sql/) 0.7.0 | `ingots` | the skeleton of the addon for SQL databases; next, typed tables, typical queries and raw SQL |
+| [ingot-auth](https://github.com/ak-ingots/ingot-auth) | `ingot-auth` (not published yet) | `ingots` | the skeleton of the addon for the sign-up, the sign-in and the sessions of the users of an application; next, its core |
 
 A new package: create the repository in
 [ak-ingots](https://github.com/ak-ingots), add it to `repos.txt` (after its

@@ -29,8 +29,8 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: ak-ingots/ingots-libs
+      - run: make clone  # first: the lock files of the clones key the cache of uv
       - uses: astral-sh/setup-uv@v10.3.2  # no floating major tags since v8
-      - run: make clone
       - if: inputs.target == 'dep-try'
         uses: actions/download-artifact@v8
         with:

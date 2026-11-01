@@ -1,6 +1,7 @@
 # 0007. Code layout and naming
 
 - Status: Accepted
+- Domains: design
 - Date: 2026-10-18
 - Deciders: Aliaksandr Karotki
 - Supersedes / Superseded by: —

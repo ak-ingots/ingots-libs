@@ -1,6 +1,7 @@
 # 0001. Record architecture decisions
 
 - Status: Accepted
+- Domains: process
 - Date: 2026-10-17
 - Deciders: Aliaksandr Karotki
 - Supersedes / Superseded by: —

@@ -1,6 +1,7 @@
 # 0006. Design principles: SOLID, DRY, KISS, YAGNI, the Zen of Python
 
 - Status: Accepted
+- Domains: design
 - Date: 2026-10-18
 - Deciders: Aliaksandr Karotki
 - Supersedes / Superseded by: —

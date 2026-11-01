@@ -1,6 +1,7 @@
 # NNNN. Short imperative title
 
 - Status: Draft
+- Domains: process, tooling, design, or a topic such as grpc; one or several
 - Date: YYYY-MM-DD
 - Deciders: TBD
 - Supersedes / Superseded by: —

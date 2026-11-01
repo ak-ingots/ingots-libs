@@ -1,6 +1,7 @@
 # 0008. Move the dependents of a package along the tree
 
 - Status: Accepted
+- Domains: process, tooling
 - Date: 2026-11-01
 - Deciders: Aliaksandr Karotki
 - Supersedes / Superseded by: —

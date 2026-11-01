@@ -1,6 +1,7 @@
 # 0002. Target Linux; macOS as a by-product
 
 - Status: Accepted
+- Domains: tooling
 - Date: 2026-10-17
 - Deciders: Aliaksandr Karotki
 - Supersedes / Superseded by: —

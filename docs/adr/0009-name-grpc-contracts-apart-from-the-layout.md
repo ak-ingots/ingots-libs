@@ -40,6 +40,7 @@ package and the service, so a rename moves the SDKs without breaking a client.
   depend on the inside of the addon.
 - Names of different addons never collide in one process.
 - Exports of different servers of an addon give identical files, so they merge.
+- A server shows a consumer only what it serves to that consumer.
 - The generated code stays as `protoc` writes it, as far as possible.
 
 ## Considered options
@@ -60,12 +61,27 @@ Option 2, for every addon shipping a contract.
    keeps it apart from other addons. It lies under `proto/` of the contrib, which is
    the root given to `protoc` (`-I proto`).
 2. A file holds one service and its messages, in a proto package of its own,
-   `ingot_<name>.<service>.v<N>`. Messages two services share go to a file with no
-   services, which both import; otherwise each has its own.
-3. `make proto` runs a plain `protoc`, then rewrites `from ingot_<name>.v<N> import`
+   `ingot_<name>.<service>.v<N>`: the constants of an enum are scoped by the proto
+   package, so two files can use the same names. A file with no services, for
+   messages two services share, has a package of its own too.
+3. A service stands for an entity, the subdomain of the addon it follows, and lists
+   the operations on it. A public view of entities is a service of its own, with its
+   own copies of the messages and no import of theirs, as an import brings all the
+   messages of a file into the export.
+4. A service whose operations require permissions declares them next to it, in an
+   enum `Permission` holding the names and the bits of the flags of the addon, with
+   `PERMISSION_UNSPECIFIED = 0`. The export carries the enum, so a client knows the
+   permissions without another call, to build its interface; the server checks them
+   anyway. The flags in Python stay the source, and a test of the addon compares
+   the enum with them.
+5. Every RPC has a request and a response of its own, `<Rpc><Entity>Request` and
+   `<Rpc><Entity>Response`, empty ones too: a field can be added to one later without
+   touching the others. A service is named after its entity, with no `Service`
+   suffix.
+6. `make proto` runs a plain `protoc`, then rewrites `from ingot_<name>.v<N> import`
    to `from . import` in the generated `.py` and `.pyi` files. An addon forgetting it
    fails on import, in `make wheel-test` at the latest.
-4. Only the wheel of the addon carries the rewrite. An SDK generated from the export
+7. Only the wheel of the addon carries the rewrite. An SDK generated from the export
    needs none, its paths being the names.
 
 ## Consequences
@@ -76,11 +92,19 @@ Option 2, for every addon shipping a contract.
 - A public server exports nothing of the services it does not serve, not even
   their messages.
 - Two services can evolve apart, each in its own package and version.
+- A contract reads like the addon: a file per subdomain.
+- A client gets the permissions in the SDK, typed.
 
 ### Negative
 
 - Every addon with a contract carries the rewrite in its `Makefile`.
 - A message of two services without a shared file exists twice, with its conversion.
+- A service serves its entity whole: one public operation needs a public view.
+- The enum `Permission` copies the flags, and a client learns a new one only from a
+  new SDK. A mask stays a plain `uint32` by the name of its domain.
+- The export does not say which RPC requires what: comments do not reach it.
+- The values of the enum `Permission` are bits, so they are not dense, as the style
+  guide of protobuf asks: a third permission has the value 4.
 - The path does not mirror the proto package, which linters such as buf expect.
 - The rewrite covers one directory: an import between versions needs more.
 - A directory `ingot_<name>/` of an SDK shadows the installed addon of that name in
@@ -91,6 +115,7 @@ Option 2, for every addon shipping a contract.
 - With a second addon holding a contract, the rewrite may move to a command of
   ingot-grpcio.
 - Whether `GrpcService` with a servicer should refuse a file of several services.
+- Generating the services and the enums from the operations and the flags in Python.
 
 ## Links
 

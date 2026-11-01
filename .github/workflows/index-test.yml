@@ -1,0 +1,44 @@
+name: index-test
+
+# Called by the release workflow of a package of the ecosystem, between TestPyPI
+# and PyPI: the package alone as TestPyPI gives it, the same file as the build,
+# the artifact `dist` of the caller. The package tests it in its own
+# `make installed-test`, its dependencies from PyPI: anyone may take the name of
+# a dependency on TestPyPI. A failure here holds the release back.
+
+on:
+  workflow_call:
+    inputs:
+      package:
+        description: The name of the package.
+        required: true
+        type: string
+      version:
+        description: The version published.
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
+        with:
+          repository: ak-ingots/ingots-libs
+          path: .meta
+      - uses: astral-sh/setup-uv@v10.3.2  # no floating major tags since v8
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist/
+      - name: Fetch and test the wheel
+        env:
+          PACKAGE: ${{ inputs.package }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          wheel=$(.meta/.github/scripts/fetch_wheel.sh "$PACKAGE" "$VERSION" "$RUNNER_TEMP/index")
+          make installed-test WHEEL="$wheel"

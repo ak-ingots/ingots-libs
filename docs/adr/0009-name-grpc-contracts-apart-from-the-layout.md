@@ -68,16 +68,16 @@ Option 2, for every addon shipping a contract.
    most often an entity. A public view of entities is a service of its own, with its
    own copies of the messages and no import of theirs, as an import brings all the
    messages of a file into the export.
-4. A set of operations has the permissions of its own, in the flags of a domain of
-   its own, `auth.tags` and so on, whether they are about creating and reading or
-   anything else: a permission is on operations, and that a set of them follows an
-   entity is a coincidence, not a rule. Its service declares them next to it, in an
-   enum `Permission` with the same names and bits, `PERMISSION_CAN_READ` for
-   `CAN_READ`, and `PERMISSION_UNSPECIFIED = 0`. The export carries the enum, so a
-   client knows the permissions without another call, to build its interface; the
-   server checks them anyway. The flags in Python stay the source, and a test of the
-   addon compares the enum with them. A public view requires a permission too, one
-   its servicer gives anyone until a subclass says otherwise.
+4. Permissions are on operations: a flag tells that a caller may run an operation,
+   nothing else. A set of operations has its flags in a domain of its own, `auth.tags`
+   and so on. Flags repeating the CRUD of an entity are a useful coincidence, neither
+   a rule nor a kind of permission of their own. A service declares the flags of its
+   operations next to it, in an enum `Permission` with the same names and bits,
+   `PERMISSION_CAN_READ` for `CAN_READ`, and `PERMISSION_UNSPECIFIED = 0`. The export
+   carries the enum, so a client knows the permissions without another call, to build
+   its interface; the server checks them anyway. The flags in Python stay the source,
+   and a test of the addon compares the enum with them. A public view requires a
+   permission too, one its servicer gives anyone until a subclass says otherwise.
 5. Every RPC has a request and a response of its own, `<Rpc><Subject>Request` and
    `<Rpc><Subject>Response`, empty ones too: a field can be added to one later without
    touching the others. A service is named after its subdomain, with no `Service`

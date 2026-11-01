@@ -21,3 +21,4 @@ metadata, like the status: they may change in a record already accepted.
 | [0007](0007-code-layout-and-naming.md) | Code layout and naming | design | Accepted |
 | [0008](0008-move-dependents-along-the-tree.md) | Move the dependents of a package along the tree | process, tooling | Accepted |
 | [0009](0009-name-grpc-contracts-apart-from-the-layout.md) | Name the gRPC contracts of addons apart from their layout | grpc, tooling | Accepted |
+| [0010](0010-keep-contracts-under-testing.md) | Keep the contracts of a package under testing | design | Accepted |

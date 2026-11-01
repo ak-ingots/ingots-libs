@@ -4,7 +4,7 @@
 - Domains: design, tooling
 - Date: 2026-10-18
 - Deciders: Aliaksandr Karotki
-- Supersedes / Superseded by: —
+- Supersedes / Superseded by: its location of the contracts by [0010](0010-keep-contracts-under-testing.md)
 
 > In the context of **applications and addons composed from other addons**,
 > facing **customizations that can silently break the behaviour an addon

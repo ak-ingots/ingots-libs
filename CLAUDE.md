@@ -79,8 +79,8 @@ Decided in [docs/adr](docs/adr/README.md); the essentials:
   `raise NotImplementedError` excluded) runs in `make check` and in CI; copy
   the setup from `ingots`.
 - A breaking release moves what depends on the package, along the tree, each in
-  a pull request and release of its own (0008, proposed): `make dep-tree` shows the
-  tree, `make dep-behind` who is behind, `make dep-next` what can move now,
+  a pull request and release of its own (0008): `make dep-tree` shows the tree,
+  `make dep-behind` who is behind, `make dep-next` what can move now,
   `make dep-try OF=<package>` runs the dependents.
 - Documentation: the meta repository lives on GitHub only. Packages publish
   Sphinx docs on Read the Docs: `ingots` is the parent project

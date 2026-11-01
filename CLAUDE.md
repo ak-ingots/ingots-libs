@@ -83,7 +83,7 @@ Decided in [docs/adr](docs/adr/README.md); the essentials:
   `make dep-behind` who is behind, `make dep-next` what can move now,
   `make dep-try OF=<package>` runs the dependents.
 - An addon shipping a gRPC contract names its files `ingot_<name>/v<N>/<service>.proto`
-  and makes the imports of the generated code relative (0009, proposed).
+  and makes the imports of the generated code relative (0009).
 - Documentation: the meta repository lives on GitHub only. Packages publish
   Sphinx docs on Read the Docs: `ingots` is the parent project
   (`https://ingots.readthedocs.io/`), every addon a subproject under it

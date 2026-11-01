@@ -1,9 +1,9 @@
 # 0009. Name the gRPC contracts of addons apart from their layout
 
-- Status: Proposed
+- Status: Accepted
 - Domains: grpc, tooling
 - Date: 2026-11-01
-- Deciders: TBD
+- Deciders: Aliaksandr Karotki
 - Supersedes / Superseded by: —
 
 > In the context of **addons shipping a gRPC contract in a contrib of
@@ -64,8 +64,8 @@ Option 2, for every addon shipping a contract.
    `ingot_<name>.<service>.v<N>`: the constants of an enum are scoped by the proto
    package, so two files can use the same names. A file with no services, for
    messages two services share, has a package of its own too.
-3. A service stands for an entity, the subdomain of the addon it follows, and lists
-   the operations on it. A public view of entities is a service of its own, with its
+3. A service stands for a set of operations, the subdomain of the addon it follows,
+   most often an entity. A public view of entities is a service of its own, with its
    own copies of the messages and no import of theirs, as an import brings all the
    messages of a file into the export.
 4. A set of operations has the permissions of its own, in the flags of a domain of
@@ -78,9 +78,9 @@ Option 2, for every addon shipping a contract.
    server checks them anyway. The flags in Python stay the source, and a test of the
    addon compares the enum with them. A public view requires a permission too, one
    its servicer gives anyone until a subclass says otherwise.
-5. Every RPC has a request and a response of its own, `<Rpc><Entity>Request` and
-   `<Rpc><Entity>Response`, empty ones too: a field can be added to one later without
-   touching the others. A service is named after its entity, with no `Service`
+5. Every RPC has a request and a response of its own, `<Rpc><Subject>Request` and
+   `<Rpc><Subject>Response`, empty ones too: a field can be added to one later without
+   touching the others. A service is named after its subdomain, with no `Service`
    suffix.
 6. `make proto` runs a plain `protoc`, then rewrites `from ingot_<name>.v<N> import`
    to `from . import` in the generated `.py` and `.pyi` files. An addon forgetting it
@@ -103,7 +103,7 @@ Option 2, for every addon shipping a contract.
 
 - Every addon with a contract carries the rewrite in its `Makefile`.
 - A message of two services without a shared file exists twice, with its conversion.
-- A service serves its entity whole: one public operation needs a public view.
+- A service serves its operations whole: one public operation needs a public view.
 - The enum `Permission` copies the flags, and a client learns a new one only from a
   new SDK. A mask stays a plain `uint32` by the name of its domain.
 - The export does not say which RPC requires what: comments do not reach it.

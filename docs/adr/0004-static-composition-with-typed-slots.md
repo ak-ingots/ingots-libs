@@ -1,6 +1,7 @@
 # 0004. Static composition of extensions with typed slots
 
 - Status: Accepted
+- Domains: design
 - Date: 2026-10-18
 - Deciders: Aliaksandr Karotki
 - Supersedes / Superseded by: —

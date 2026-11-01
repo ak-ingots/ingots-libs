@@ -1,6 +1,7 @@
 # 0003. Flat layout; libraries are tested as built wheels
 
 - Status: Accepted
+- Domains: tooling
 - Date: 2026-10-17
 - Deciders: Aliaksandr Karotki
 - Supersedes / Superseded by: —

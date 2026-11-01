@@ -1,6 +1,7 @@
 # 0005. Addons ship contract tests; consumers run them
 
 - Status: Accepted
+- Domains: design, tooling
 - Date: 2026-10-18
 - Deciders: Aliaksandr Karotki
 - Supersedes / Superseded by: —

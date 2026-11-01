@@ -26,19 +26,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/checkout@v7
-        with:
-          repository: ak-ingots/ingots-libs
-          path: .meta
       - uses: astral-sh/setup-uv@v10.3.2  # no floating major tags since v8
       - uses: actions/download-artifact@v8
         with:
           name: dist
           path: dist/
-      - name: Fetch and test the wheel
+      # TestPyPI may take minutes to list what was just published. pip runs under
+      # a Python the wheel supports.
+      - name: Fetch the wheel
         env:
-          PACKAGE: ${{ inputs.package }}
-          VERSION: ${{ inputs.version }}
+          REQUIREMENT: ${{ inputs.package }}==${{ inputs.version }}
         run: |
-          wheel=$(.meta/.github/scripts/fetch_wheel.sh "$PACKAGE" "$VERSION" "$RUNNER_TEMP/index")
-          make installed-test WHEEL="$wheel"
+          for attempt in $(seq 50); do
+            uvx --quiet --python 3.14 pip download --quiet --no-deps --only-binary :all: \
+              --index-url https://test.pypi.org/simple/ --dest "$RUNNER_TEMP/index" \
+              "$REQUIREMENT" && break
+            [ "$attempt" -lt 50 ] || exit 1
+            echo "== waiting for $REQUIREMENT on TestPyPI"
+            sleep 10
+          done
+      - name: Compare the wheel with the build
+        run: |
+          wheel=$(echo "$RUNNER_TEMP"/index/*.whl)
+          cmp "$wheel" "dist/${wheel##*/}"
+          echo "WHEEL=$wheel" >> "$GITHUB_ENV"
+      - run: make installed-test WHEEL="$WHEEL"

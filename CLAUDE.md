@@ -77,6 +77,9 @@ Decided in [docs/adr](docs/adr/README.md); the essentials:
   `branch = true`, `fail_under = 99`, `if t.TYPE_CHECKING:` and
   `raise NotImplementedError` excluded) runs in `make check` and in CI; copy
   the setup from `ingots`.
+- A minor version of ingots moves every addon right after its release, each in
+  a pull request and release of its own (0008, proposed): `make pins` shows
+  what they pin, `make try-ingots` runs them on the checkout of ingots.
 - Documentation: the meta repository lives on GitHub only. Packages publish
   Sphinx docs on Read the Docs: `ingots` is the parent project
   (`https://ingots.readthedocs.io/`), every addon a subproject under it

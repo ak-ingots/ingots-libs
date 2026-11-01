@@ -13,3 +13,4 @@ from [template.md](template.md).
 | [0005](0005-addons-ship-contract-tests.md) | Addons ship contract tests; consumers run them | Accepted |
 | [0006](0006-design-principles.md) | Design principles: SOLID, DRY, KISS, YAGNI, the Zen of Python | Accepted |
 | [0007](0007-code-layout-and-naming.md) | Code layout and naming | Accepted |
+| [0008](0008-move-addons-onto-new-ingots.md) | Move the addons onto a new ingots at once | Proposed |

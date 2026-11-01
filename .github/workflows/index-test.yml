@@ -31,17 +31,18 @@ jobs:
         with:
           name: dist
           path: dist/
-      # TestPyPI may take minutes to list what was just published. pip runs under
-      # a Python the wheel supports.
+      # The CDN of TestPyPI keeps the page of a package for 10 minutes
+      # (cache-control: max-age=600), so that may be how long a new version takes
+      # to show: 12 minutes cover it. pip runs under a Python the wheel supports.
       - name: Fetch the wheel
         env:
           REQUIREMENT: ${{ inputs.package }}==${{ inputs.version }}
         run: |
-          for attempt in $(seq 50); do
+          for attempt in $(seq 72); do
             uvx --quiet --python 3.14 pip download --quiet --no-deps --only-binary :all: \
               --index-url https://test.pypi.org/simple/ --dest "$RUNNER_TEMP/index" \
               "$REQUIREMENT" && break
-            [ "$attempt" -lt 50 ] || exit 1
+            [ "$attempt" -lt 72 ] || exit 1
             echo "== waiting for $REQUIREMENT on TestPyPI"
             sleep 10
           done

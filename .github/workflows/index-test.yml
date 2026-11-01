@@ -1,0 +1,53 @@
+name: index-test
+
+# Called by the release workflow of a package of the ecosystem, between TestPyPI
+# and PyPI: the package alone as TestPyPI gives it, the same file as the build,
+# the artifact `dist` of the caller. The package tests it in its own
+# `make installed-test`, its dependencies from PyPI: anyone may take the name of
+# a dependency on TestPyPI. A failure here holds the release back.
+
+on:
+  workflow_call:
+    inputs:
+      package:
+        description: The name of the package.
+        required: true
+        type: string
+      version:
+        description: The version published.
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.2  # no floating major tags since v8
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist/
+      # TestPyPI may take minutes to list what was just published. pip runs under
+      # a Python the wheel supports.
+      - name: Fetch the wheel
+        env:
+          REQUIREMENT: ${{ inputs.package }}==${{ inputs.version }}
+        run: |
+          for attempt in $(seq 50); do
+            uvx --quiet --python 3.14 pip download --quiet --no-deps --only-binary :all: \
+              --index-url https://test.pypi.org/simple/ --dest "$RUNNER_TEMP/index" \
+              "$REQUIREMENT" && break
+            [ "$attempt" -lt 50 ] || exit 1
+            echo "== waiting for $REQUIREMENT on TestPyPI"
+            sleep 10
+          done
+      - name: Compare the wheel with the build
+        run: |
+          wheel=$(echo "$RUNNER_TEMP"/index/*.whl)
+          cmp "$wheel" "dist/${wheel##*/}"
+          echo "WHEEL=$wheel" >> "$GITHUB_ENV"
+      - run: make installed-test WHEEL="$WHEEL"

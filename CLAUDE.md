@@ -15,7 +15,8 @@ over all of them. Directories not in `repos.txt` (e.g. `ingots-current/`, a
 clone of the previous implementation, or `designs/`) are local scratch.
 `make check-prototypes` is this repository's own check, the one its CI runs:
 the design prototypes run, and mypy reports exactly the lines they mark
-`# error:`.
+`# error:`. `.github/workflows/` also holds what the release workflows of the
+packages call: `dependents` and `index-test`.
 
 ## GitHub access
 

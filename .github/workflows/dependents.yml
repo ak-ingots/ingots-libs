@@ -1,0 +1,42 @@
+name: dependents
+
+# Called by the release workflow of a package of the ecosystem: what depends on
+# it, by the tree of the pyproject.toml files (ADR 0008). `dep-try` runs their
+# tests on the build, the artifact `dist` of the caller; `dep-behind` tells
+# whether they take the latest release of the package. Neither holds a release back.
+
+on:
+  workflow_call:
+    inputs:
+      package:
+        description: The package released, a name of repos.txt.
+        required: true
+        type: string
+      target:
+        description: "`dep-try` or `dep-behind`."
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          repository: ak-ingots/ingots-libs
+      - uses: astral-sh/setup-uv@v10.3.2  # no floating major tags since v8
+      - run: make clone
+      - if: inputs.target == 'dep-try'
+        uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist/
+      - if: inputs.target == 'dep-try'
+        run: make dep-try OF=${{ inputs.package }} WITH="$(echo "$PWD"/dist/*.whl)"
+      - if: inputs.target == 'dep-behind'
+        run: make dep-behind OF=${{ inputs.package }}

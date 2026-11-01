@@ -2,9 +2,9 @@
 SHELL := /bin/bash
 OWNER := ak-ingots
 REPOS := $(shell grep -v '^\#' repos.txt)
-ADDONS := $(filter ingot-%,$(REPOS))
+DEPENDENTS := uv run --quiet --python 3.14 --no-project --with packaging python .github/scripts/dependents.py
 
-.PHONY: help clone pull status check prs ci pins try-ingots check-prototypes
+.PHONY: help clone pull status check prs ci dep-tree dep-behind dep-next dep-try check-prototypes
 
 help:
 	@echo "clone   clone missing repositories (gh, uses gh auth)"
@@ -13,8 +13,10 @@ help:
 	@echo "check   make check (lint, test) everywhere, dependencies first"
 	@echo "prs     open pull requests across the ecosystem (gh)"
 	@echo "ci      last workflow run of every repository (gh)"
-	@echo "pins    what main of every addon pins of ingots, and which are behind"
-	@echo "try-ingots  the tests of the addons on INGOTS, the checkout by default"
+	@echo "dep-tree    who depends on whom in the ecosystem"
+	@echo "dep-behind  who does not take the latest releases, of OF alone if given; fails then"
+	@echo "dep-next    what can move or be released right now"
+	@echo "dep-try     the tests of what depends on OF on WITH, its checkout by default"
 	@echo "check-prototypes  run the design prototypes, compare mypy with their marks"
 
 clone:
@@ -37,26 +39,26 @@ prs:
 ci:
 	@for r in $(REPOS); do echo "== $$r"; gh run list -R $(OWNER)/$$r -L 1; done
 
-# The pins of the last fetch of main: `git fetch` in a repository refreshes it.
-# Fails when an addon is behind, see ADR 0008.
-pins:
-	@latest=$$(git -C ingots tag --sort=-v:refname | head -1 | sed 's/^v//'); \
-	echo "ingots $$latest"; \
-	behind=0; for r in $(ADDONS); do \
-		pin=$$(git -C $$r show origin/main:pyproject.toml | grep -oE '"ingots[<>=][^"]*"' | tr -d '"'); \
-		case "$$pin" in *">=$${latest%.*}."*) mark="";; *) mark=" <- behind"; behind=1;; esac; \
-		printf '%-16s %s%s\n' "$$r" "$$pin" "$$mark"; \
-	done; \
-	exit $$behind
+# From the last fetch of main of each repository: `git fetch` refreshes it. See
+# ADR 0008. OF=ingot-grpcio asks about one package, WITH='ingots==0.32.2' tries
+# a published version.
+OF ?=
+WITH ?= $(CURDIR)/$(OF)
 
-# The tests as checked out in each addon, on another ingots: an early warning,
-# see ADR 0008. INGOTS='ingots==0.32.2' takes a published one.
-INGOTS ?= $(CURDIR)/ingots
+dep-tree:
+	@$(DEPENDENTS) tree
 
-try-ingots:
-	@failed=""; for r in $(ADDONS); do \
+dep-behind:
+	@$(DEPENDENTS) behind $(OF)
+
+dep-next:
+	@$(DEPENDENTS) next
+
+dep-try:
+	@test -n "$(OF)" || { echo "OF=<package> is required"; exit 1; }
+	@failed=""; for r in $$($(DEPENDENTS) list $(OF)); do \
 		echo "== $$r ($$(git -C $$r branch --show-current))"; \
-		(cd $$r && uv run --quiet --with "$(INGOTS)" python -m unittest discover -s tests -t .) \
+		(cd $$r && uv run --quiet --with "$(WITH)" python -m unittest discover -s tests -t .) \
 			|| failed="$$failed $$r"; \
 	done; \
 	if [ -n "$$failed" ]; then echo "failed:$$failed"; exit 1; fi

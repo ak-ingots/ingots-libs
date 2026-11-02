@@ -82,8 +82,10 @@ Decided in [docs/adr](docs/adr/README.md); the essentials:
   a pull request and release of its own (0008): `make dep-tree` shows the tree,
   `make dep-behind` who is behind, `make dep-next` what can move now,
   `make dep-try OF=<package>` runs the dependents.
-- An addon shipping a gRPC contract names its files `ingot_<name>/v<N>/<service>.proto`
-  and makes the imports of the generated code relative (0009).
+- An addon shipping a gRPC contract puts a service of a subdomain into the package
+  `ingot_<name>.<path>.v<N>` and the file `ingot_<name>/<path>/v<N>/<service>.proto`,
+  its contrib following the subdomains of the core, and makes the imports of the
+  generated code relative (0009, 0011).
 - Documentation: the meta repository lives on GitHub only. Packages publish
   Sphinx docs on Read the Docs: `ingots` is the parent project
   (`https://ingots.readthedocs.io/`), every addon a subproject under it

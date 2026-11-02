@@ -4,7 +4,9 @@
 - Domains: grpc, tooling
 - Date: 2026-11-01
 - Deciders: Aliaksandr Karotki
-- Supersedes / Superseded by: —
+- Supersedes / Superseded by: its names of the files and the services, the domains of
+  the permissions and the rewrite of the imports by
+  [0011](0011-mirror-the-packages-of-grpc-contracts.md)
 
 > In the context of **addons shipping a gRPC contract in a contrib of
 > ingot-grpcio**, facing **file names that are global in a process and that every

@@ -72,6 +72,11 @@ Decided in [docs/adr](docs/adr/README.md); the essentials:
   tests run by every consumer (0005), under `testing/contracts` (0010); design
   principles and their priority (0006); code layout and naming: member and module order, verbs for
   methods, `Base` for incomplete classes, prefixed mixin members (0007).
+- A feature that adds or changes an API, a flow or a domain gets a design
+  first, `docs/design/<topic>/README.md` from `docs/design/template.md`: its
+  stories by actor, accepted by the code of their consumers in a prototype
+  checked by `make check-prototypes`; the code comes after the user accepts
+  it, in slices, each with its first consumer (0012).
 - Tooling: uv with `uv_build`, `make` as the entrypoint (`make check` runs
   every check, `make all` builds), stdlib `unittest`, black, flake8,
   `mypy --strict`. Test coverage is a check too: `make coverage` (coverage.py,

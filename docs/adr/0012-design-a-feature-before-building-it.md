@@ -50,7 +50,9 @@ package gets a design document before its code:
   feature may touch several, from [the template](../design/template.md),
   its sections optional, its prototypes in
   `docs/design/<topic>/<concept>/`, checked one by `make check-prototype`
-  while it is written, all by `make check-prototypes` in CI.
+  while it is written, all by `make check-prototypes` in CI. A topic grown
+  into a domain splits into a file a part, the README the whole and the
+  slices, the stories numbered by file, `sessions.2.1`, and linked.
 - Its stories are told by actor: the author of an application, of an addon
   or a contrib, of a client, an operator, the end user. A story taken is
   accepted by the code its actor writes, run in the prototype; mypy must
@@ -58,11 +60,14 @@ package gets a design document before its code:
 - It finds the domain first, its events and states, and draws a flow of more
   than one step as a sequence; Mermaid, as GitHub renders it.
 - A package of the auth or of the data of users adds its threats by STRIDE.
-- It is done when the user accepts it, its status `Accepted`; the code is
-  then built in slices, a pull request each with its first consumer, a thin
-  path through every layer first.
+- The user accepts the stories of the next slice, not the whole document:
+  each story has a status, `Draft`, `Accepted`, `Implemented`, and a
+  question names the stories it holds, parked while none is of the next
+  slice. The code is built in slices, a pull request each with its first
+  consumer, a thin path through every layer first.
 - A design is not an ADR: it may change while built, and its status becomes
-  `Built`. A decision in it that spans repositories becomes an ADR.
+  `Built` once all its stories are. A decision in it that spans repositories
+  becomes an ADR.
 - A fix, a rename, a move of code or a change of one function needs none.
 
 ## Consequences

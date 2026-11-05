@@ -121,7 +121,7 @@ What a client and an application see and pick before anything.
 
 | # | Actor | Story | Needs | Status |
 |---|---|---|---|---|
-| <a id="auth-1-1"></a>1.1 | client | **I load the metadata of the auth to learn which methods I can sign up and sign in by, so that I show the user those and no others.**<br>• The metadata of the profiles and of the sessions is there, their registries; that of the methods is not.<br>• The metadata lists the methods in the slots of the methods of the application, whatever they are: a method of the core or one of the application's own, each by its name, the path of its slot, with the flows open by it ([methods.1.2](methods/README.md#methods-1-2)). It knows no method of the core by itself: they are a catalogue, bound by the application ([methods.1.1](methods/README.md#methods-1-1)) (the user, 2026-11-04).<br>• The flows a method takes are those it is written for; a contract test of the method checks that it refuses the others (`AuthMethodUnsupportedError`).<br>• Example: given the nickname method bound and the `email_code` one not, a client reads `[{name: nickname, flows: {sign_up, sign_in}}]`.<br>• The client calls a method by its own typed service (`Nickname.SignIn`): the list tells only which are there. | [methods.1.1](methods/README.md#methods-1-1) | Draft |
+| <a id="auth-1-1"></a>1.1 | client | **I load the metadata of the auth to learn which methods I can sign up and sign in by, so that I show the user those and no others.**<br>• The metadata of the profiles and of the sessions is there, their registries; that of the methods is not.<br>• The metadata lists the methods in the slots of the methods of the application, whatever they are: a method of the core or one of the application's own, each by its name, the path of its slot, with the flows open by it ([methods.1.2](methods/README.md#methods-1-2)). It knows no method of the core by itself: they are a catalogue, bound by the application ([methods.1.1](methods/README.md#methods-1-1)) (the user, 2026-11-04).<br>• The flows a method takes are those it is written for; a contract test of the method checks that it refuses the others (`AuthMethodUnsupportedError`).<br>• Example: given the nickname method bound with its sign-up closed, and the `email_code` one not bound, a client reads `[{name: nickname, flows: {sign_up: false, sign_in: true}}]`: the nickname is there, its sign-up closed for now.<br>• The client calls a method by its own typed service (`Nickname.SignIn`): the list tells only which are there. | [methods.1.1](methods/README.md#methods-1-1) | Draft |
 | <a id="auth-1-2"></a>1.2 | client | **The metadata gives the policies a method checks, the length of a password, so that I check a form before sending it.** | [1.1](#auth-1-1) | Draft |
 | <a id="auth-1-3"></a>1.3 | application | **I import one starter that suits me, `game` or `web`, instead of a dozen classes to pick and subclass, and override only what differs.**<br>• `contrib/starters/`, a flat list, each units an application inherits and overrides, picking the methods and the strategies, or the storage, the cache and the transport too, under an extra of its own when it needs libraries; not "presets", which ingot-auth has twice already.<br>• Its worth grows with all that is bound by hand (the user, 2026-11-04): the methods, the configs of each, their servicers, the strategies of the sessions, of the timing, of the second factor. A starter binds them once, as they go together, and the creation of the project checks it as any application.<br>• Example: given `class AppAuth(AuthWebStarter)`, the application has the sign-up by `email_code`, the sign-in by `nickname` and `email_code`, a sliding month, the oldest session evicted, overriding only the slot of the mail. | [access.1.1](access.md#access-1-1), [sessions.3.1](sessions.md#sessions-3-1), [sessions.3.3](sessions.md#sessions-3-3) | Draft |
 
@@ -156,10 +156,11 @@ The metadata of the methods, a list of those bound:
 ```proto
 // ingot_auth/metadata/v1/metadata.proto
 message Method {
+  // a flow the method takes: open or closed by its toggle; unset: not taken
   message Flows {
-    bool sign_up = 1;
-    bool sign_in = 2;
-    bool bind = 3;
+    optional bool sign_up = 1;
+    optional bool sign_in = 2;
+    optional bool bind = 3;
   }
 
   string name = 1;  // the path of its slot: nickname, email_code
@@ -176,6 +177,16 @@ message GetMetadataResponse {
 In the core, `ingot_auth/metadata/`: a part `methods` of `AuthMetadata`,
 a tuple of `AuthMethodMetadata(name, flows)`, one a slot of the methods,
 found by `slots_find_entities` of `BaseAuthMethod`.
+
+The packages of the core, a flow a package, as `sign_up/` is (the user,
+2026-11-05):
+
+- `ingot_auth/sign_in/`: the sign-in ([methods](methods/README.md#api-sketch));
+- `ingot_auth/sign_out/`: the sign-out, likely one operation,
+  `op_sign_out` ([sign-out](sign-out.md#api-sketch));
+- `ingot_auth/sessions/`: the sessions, their registries, their lifetime,
+  their revokes, all in the unit `AuthSessions`, no package within (the
+  user, 2026-11-05) ([sessions](sessions.md#api-sketch)).
 
 A starter (story [1.3](#auth-1-3)), the strategies picked once for a kind of
 application:
@@ -214,27 +225,9 @@ Six months on, the auth failed. Why:
 
 ## Questions
 
-Of this file:
+Of this file: none now.
 
-1. <a id="auth-q1"></a>Names: `sign_in/` for the flow, `session/sessions/`
-   for the sessions, the sign-out an operation of the sessions. Or a
-   `sign_out/` package? Holds the packages of slice 2.
-
-Those the next slice, 2, needs answered:
-
-- [auth Q1](#auth-q1): the names of the packages.
-- [methods Q1](methods/README.md#methods-q1): the default of a toggle.
-- [methods Q2](methods/README.md#methods-q2): the error of an operation
-  closed.
-- [methods Q3](methods/README.md#methods-q3): the gRPC statuses of the errors
-  of the methods.
-- [sessions Q1](sessions.md#sessions-q1): the session in the caller, or the
-  token in the parameters.
-- [sessions Q2](sessions.md#sessions-q2): `authenticate()`, a method or an
-  operation.
-- [sessions Q3](sessions.md#sessions-q3): sha256 of the token.
-- [access Q1](access.md#access-q1): the fixed permissions of a ClassVar or of
-  a config.
+Those the next slice, 2, needs answered: none now.
 
 ## Slices
 

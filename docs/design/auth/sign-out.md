@@ -58,8 +58,11 @@ app auth profiles block <uid>
 app auth sessions sweep
 ```
 
-In the core, operations of `AuthSessions` ([sessions](sessions.md#api-sketch)):
-`op_sign_out`, `op_revoke_own`, `op_revoke_others`, `op_revoke_all`.
+In the core, the sign-out is a package of its own, `ingot_auth/sign_out/`,
+as the sign-in is, likely with one operation, `op_sign_out` (the user,
+2026-11-05). The revokes are operations of `AuthSessions`
+([sessions](sessions.md#api-sketch)): `op_revoke_own`, `op_revoke_others`,
+`op_revoke_all`.
 
 ## Threats
 

@@ -41,8 +41,8 @@ stateDiagram-v2
 | # | Actor | Story | Needs | Status |
 |---|---|---|---|---|
 | <a id="sessions-1-1"></a>1.1 | application | **I register the attributes a session keeps, each with its type and its source, and the presets a client gives them by; the client learns them from the metadata and gives their values with a sign-up.**<br>• An attribute keeps its type and its source once given: renaming keeps them, nothing changes them.<br>• The metadata gives a client the attributes whose source is the client, and the presets with their bindings; the others are not for it.<br>• A sign-up checks the values the client gives: an attribute unknown or not the client's, `AuthItemNotFoundError`; a value of another type, `AuthItemInvalidError`. They are kept in the record of the sign-up, as no session opens then.<br>• The values kept with a session come with it ([1.2](#sessions-1-2)). | — | Implemented |
-| <a id="sessions-1-2"></a>1.2 | client | **A sign-in gives me a token, once, that I send with each call.**<br>• The token is random, 256 bits, given once at the sign-in; the server keeps its hash, never the token ([Q3](#sessions-q3)).<br>• The session has an id of its own, public, shown in the list of the sessions ([3.2](#sessions-3-2)); the id never authenticates.<br>• The session keeps the values of its attributes, those of the client checked as on a sign-up ([1.1](#sessions-1-1)). | [1.1](#sessions-1-1), [methods.4.1](methods/README.md#methods-4-1) | Draft |
-| <a id="sessions-1-3"></a>1.3 | transport | **I give the attributes of the transport, the IP, and the client cannot give them.**<br>• The values of the client are checked by the source of the attributes; the transport ones come from the servicer only ([Q4](#sessions-q4)). | [1.2](#sessions-1-2), [methods.2.2](methods/README.md#methods-2-2) | Draft |
+| <a id="sessions-1-2"></a>1.2 | client | **A sign-in gives me a token, once, that I send with each call.**<br>• The token is random, 256 bits, given once at the sign-in; the server keeps its hash, never the token: sha256, the token being random, a slow hash buying nothing (the user, 2026-11-05: "а там посмотрим").<br>• The session has an id of its own, public, shown in the list of the sessions ([3.2](#sessions-3-2)); the id never authenticates.<br>• The session keeps the values of its attributes, those of the client checked as on a sign-up ([1.1](#sessions-1-1)). | [1.1](#sessions-1-1), [methods.4.1](methods/README.md#methods-4-1) | Draft |
+| <a id="sessions-1-3"></a>1.3 | transport | **I give the attributes of the transport, the IP, and the client cannot give them.**<br>• The values of the client are checked by the source of the attributes; the transport ones come from the servicer only ([Q1](#sessions-q1)). | [1.2](#sessions-1-2), [methods.2.2](methods/README.md#methods-2-2) | Draft |
 
 ### 2. Working in a session
 
@@ -51,7 +51,7 @@ The token on every request, turned into a caller.
 | # | Actor | Story | Needs | Status |
 |---|---|---|---|---|
 | <a id="sessions-2-1"></a>2.1 | client | **I send the token with each call, and an expired or revoked one gives one error I can tell from the others, so I ask to sign in again.**<br>• Example: given a session expired, a call gets `UNAUTHENTICATED`, whatever the reason the session closed for. | [2.2](#sessions-2-2) | Draft |
-| <a id="sessions-2-2"></a>2.2 | transport | **I turn the token of a request into a caller, or into the anonymous one with no token, in one call.**<br>• `authenticate(token)` finds the session by the hash of the token, in the cache, or in the storage on a miss; asks the strategy of the lifetime ([3.1](#sessions-3-1)) whether it expired, and closes it if so; gives an `AuthCaller` with the uid, the id of the session and the permissions ([access.1.1](access.md#access-1-1)).<br>• Its form and the caller: [Q1](#sessions-q1), [Q2](#sessions-q2). | [1.2](#sessions-1-2), [3.1](#sessions-3-1), [access.1.1](access.md#access-1-1) | Draft |
+| <a id="sessions-2-2"></a>2.2 | transport | **I turn the token of a request into a caller, or into the anonymous one with no token, in one call.**<br>• `authenticate(token)` finds the session by the hash of the token, in the cache, or in the storage on a miss; asks the strategy of the lifetime ([3.1](#sessions-3-1)) whether it expired, and closes it if so; gives an `AuthCaller` with the uid, the id of the session and the permissions ([access.1.1](access.md#access-1-1)).<br>• A final method of `AuthSessions`, not an operation (the user, 2026-11-05): the simple first, an operation, with its logs and its run uid, can come later if a caller not yet one needs them.<br>• The caller has the uid of the profile and the permissions of the strategy (the user, 2026-11-05); how the operations of the sessions learn the session, an `AuthCaller(Caller)` with `session_id` or the token in their parameters, is the choice of the pull request that builds it. | [1.2](#sessions-1-2), [3.1](#sessions-3-1), [access.1.1](access.md#access-1-1) | Draft |
 | <a id="sessions-2-3"></a>2.3 | operation | **I read the uid of the caller from the metadata, and nothing else of the auth.** | [2.2](#sessions-2-2) | Draft |
 | <a id="sessions-2-4"></a>2.4 | end user | **A change of my profile, a permission granted, a tag, shows on my next request, without signing in again.**<br>• The permissions are computed when the session comes into the cache, and kept there with it, with the rest of the profile the client sees, its tags and its attributes ([profile.1.3](profile.md#profile-1-3)), never in the token nor in the storage: a request that hits the cache reads nothing more (the user, 2026-11-03).<br>• A change of any of them forgets the sessions of the profile in the cache, by the hashes of its open sessions, after the storage commits: the next request misses, loads the session from the storage and computes them again, signed in still. A change that must end the sessions, a block, a stolen account, revokes them instead ([sign-out.1.3](sign-out.md#sign-out-1-3), [sign-out.1.4](sign-out.md#sign-out-1-4)): no token, nothing to take from the cache.<br>• Example: given alice signed in on two devices, when she is granted a permission, then both see it on their next request, neither signs in again; when her sign-in by nickname is switched off, her sessions stay, as they are signed in already, unless the operator revokes them.<br>• The entries of the cache live a TTL, `AUTH_SESSION_CACHE_TTL`, a bound on a change that went past the operations, by hand in the database, or a process stopped between the commit and the forgetting.<br>• A cache of the memory is of one process: who runs more needs a shared one, Redis. | [2.2](#sessions-2-2), [access.1.1](access.md#access-1-1) | Draft |
 
@@ -61,7 +61,7 @@ How long they live, how many, who sees them, what is kept of them.
 
 | # | Actor | Story | Needs | Status |
 |---|---|---|---|---|
-| <a id="sessions-3-1"></a>3.1 | application | **I set one of the strategies of the lifetime of the sessions the auth has, sliding, fixed, or both, or one of my own.**<br>• The strategy is an entity in the slot `lifetime` of the sessions: given a session and the time, it tells whether the session expired and why, and whether its time seen is to be written. The core has three:<br>&nbsp;&nbsp;◦ `AuthSlidingLifetime`: expires idle longer than its TTL (`EXPIRED_IDLE`);<br>&nbsp;&nbsp;◦ `AuthFixedLifetime`: expires open longer than its TTL (`EXPIRED_ABSOLUTE`);<br>&nbsp;&nbsp;◦ `AuthSlidingFixedLifetime`: both, whichever comes first.<br>• The TTLs are configs, tuned per environment: `AUTH_SESSION_IDLE_TTL` of the sliding strategies, `AUTH_SESSION_TTL` of the fixed ones; the strategy of both reads both. A strategy names the configs it reads in its docstring.<br>• The slot has no default: the base is abstract, so mypy flags the slot left unfilled, and the project fails to create.<br>• A sliding strategy writes the time a session was seen at most once per `AUTH_SESSION_TOUCH_INTERVAL`, not on every request; a fixed one never ([Q5](#sessions-q5)).<br>• Example: given the sliding one of 30 days, a client used daily stays signed in forever; given the fixed one of a day, the user signs in daily.<br>• Example: given a session idle too long, when its token comes, then the session closes with `EXPIRED_IDLE` and the request is refused.<br>• Example: an application of its own: a session of an operator, by a tag of the profile, lives an hour, the others a month. | [1.2](#sessions-1-2) | Draft |
+| <a id="sessions-3-1"></a>3.1 | application | **I set one of the strategies of the lifetime of the sessions the auth has, sliding, fixed, or both, or one of my own.**<br>• The strategy is an entity in the slot `lifetime` of the sessions: given a session and the time, it tells whether the session expired and why, and whether its time seen is to be written. The core has three:<br>&nbsp;&nbsp;◦ `AuthSlidingLifetime`: expires idle longer than its TTL (`EXPIRED_IDLE`);<br>&nbsp;&nbsp;◦ `AuthFixedLifetime`: expires open longer than its TTL (`EXPIRED_ABSOLUTE`);<br>&nbsp;&nbsp;◦ `AuthSlidingFixedLifetime`: both, whichever comes first.<br>• The TTLs are configs, tuned per environment: `AUTH_SESSION_IDLE_TTL` of the sliding strategies, `AUTH_SESSION_TTL` of the fixed ones; the strategy of both reads both. A strategy names the configs it reads in its docstring.<br>• The slot has no default: the base is abstract, so mypy flags the slot left unfilled, and the project fails to create.<br>• A sliding strategy writes the time a session was seen at most once per `AUTH_SESSION_TOUCH_INTERVAL`, not on every request; a fixed one never ([Q2](#sessions-q2)).<br>• Example: given the sliding one of 30 days, a client used daily stays signed in forever; given the fixed one of a day, the user signs in daily.<br>• Example: given a session idle too long, when its token comes, then the session closes with `EXPIRED_IDLE` and the request is refused.<br>• Example: an application of its own: a session of an operator, by a tag of the profile, lives an hour, the others a month. | [1.2](#sessions-1-2) | Draft |
 | <a id="sessions-3-2"></a>3.2 | end user | **I see my sessions, the device, the place and the time each was last seen, and which one is this one.**<br>• The list gives the public id of each session, never its token, and marks the one of the caller by the id in its `AuthCaller`. | [2.2](#sessions-2-2) | Draft |
 | <a id="sessions-3-3"></a>3.3 | application | **I set one of the strategies of the limit of the sessions of a profile the auth has, or one of my own.**<br>• Over `AUTH_SESSIONS_MAX` open sessions of a profile, what a sign-in does is the strategy in the slot `limit` of the sessions:<br>&nbsp;&nbsp;◦ `AuthEvictOldestLimit`: signs out the one seen the longest ago (`EVICTED`);<br>&nbsp;&nbsp;◦ `AuthRefuseLimit`: refuses the sign-in;<br>&nbsp;&nbsp;◦ `AuthNoLimit`: none.<br>• No default, as every strategy: a starter picks one, the evicting one for the web, so that a user who lost a device is not locked out. | [1.2](#sessions-1-2) | Draft |
 | <a id="sessions-3-4"></a>3.4 | operator | **I sweep the expired sessions, so that they are closed with their reason without waiting for a request.** | [3.1](#sessions-3-1) | Draft |
@@ -126,12 +126,12 @@ class AppConfigs(AuthConfigs):
     AUTH_SESSION_IDLE_TTL = IntConfig(30 * DAY)
     AUTH_SESSIONS_MAX = IntConfig(10)
 
-class AppSessions(AuthSessions):
+class AppSessions(AuthSessions):  # the subdomain: its registries and the sessions
     lifetime = Slot(AuthSlidingLifetime)
     limit = Slot(AuthEvictOldestLimit)
     permissions = Slot(AppPermissions)
 
-class AppSessionUnit(AuthSessionUnit):  # the subdomain: attrs, presets, sessions
+class AppAuth(AuthUnit):
     sessions = Slot(AppSessions)
 ```
 
@@ -158,7 +158,7 @@ class BaseAuthGrpcServicer(GrpcServicer):
         token = get_bearer_token(context.invocation_metadata())
         if token is None:
             return self._get_anonymous_caller()
-        return await self.project.auth.session.sessions.authenticate(token)
+        return await self.project.auth.sessions.authenticate(token)
 ```
 
 The client (stories [2.1](#sessions-2-1), [3.2](#sessions-3-2)):
@@ -172,16 +172,18 @@ mine = await sessions.ListOwn(Empty(), metadata=auth)  # each with is_current
 
 What the core gives, by package (ADR 0007):
 
-- `ingot_auth/session/sessions/lifetimes.py`: `BaseAuthSessionLifetime`,
+- `ingot_auth/sessions/lifetimes.py`: `BaseAuthSessionLifetime`,
   final `check(session, now)` over the hooks `_expire()` and `_touch()`, and
   the three strategies; `limits.py` alike.
-- `ingot_auth/session/sessions/`: `AuthSessions` with `authenticate()`,
-  `op_list_own`, the operations of the sign-out ([sign-out](sign-out.md)),
+- `ingot_auth/sessions/`, the package `session/` renamed (the user,
+  2026-11-05): `AuthSessions`, the unit of the subdomain, its registries
+  `attrs` and `presets` as slots, with `authenticate()`,
+  `op_list_own`, the revokes ([sign-out](sign-out.md#api-sketch)),
   `cmd_*`; `AuthSessionRecord` (id, uid, method, token hash, values,
-  opened, seen, closed, reason, closed by); `AuthCaller(Caller)` with
-  `session_id`; the errors `AuthSessionNotFoundError`,
+  opened, seen, closed, reason, closed by); the caller of a
+  session, its form the pull request's (2.2); the errors `AuthSessionNotFoundError`,
   `AuthSessionExpiredError`.
-- The storage `storage.session.sessions` and the cache `cache.sessions`, by
+- The storage `storage.sessions` and the cache `cache.sessions`, by
   business operations: `open`, `find`, `touch`, `close`, `close_all`,
   `list_open`, `list_expired`; `get`, `put`, `forget`. Their contracts under
   `testing/contracts`, the memory backends first.
@@ -221,17 +223,9 @@ run checks the token, the expiry and the permissions.
 
 ## Questions
 
-1. <a id="sessions-q1"></a>The session in the caller: `AuthCaller(Caller)`
-   with `session_id`, or the operations of the sessions take the token in
-   their parameters? Holds [2.2](#sessions-2-2), of slice 2.
-2. <a id="sessions-q2"></a>`authenticate()`: a final method of
-   `AuthSessions`, as above, or an operation, with its logs and run uid, for
-   a caller that is not yet one? Holds [2.2](#sessions-2-2), of slice 2.
-3. <a id="sessions-q3"></a>sha256 of the token is enough, as it is random; a
-   slow hash buys nothing. Agree? Holds [1.2](#sessions-1-2), of slice 2.
-4. <a id="sessions-q4"></a>Parked. Where the transport values (the IP) go: a
+1. <a id="sessions-q1"></a>Parked. Where the transport values (the IP) go: a
    field of the parameters of the start the client cannot reach (the
    servicer sets it), or the metadata? Holds [1.3](#sessions-1-3), of slice
    3.
-5. <a id="sessions-q5"></a>Parked. The idle limit is then precise to the
+2. <a id="sessions-q2"></a>Parked. The idle limit is then precise to the
    touch interval. Fine? Holds [3.1](#sessions-3-1) sliding, of slice 3.

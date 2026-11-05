@@ -14,7 +14,7 @@ Today `ingot_auth.contrib.methods.password.AuthPasswordMethod`, the slot
 
 | # | Actor | Story | Needs | Status |
 |---|---|---|---|---|
-| <a id="nickname-1-1"></a>1.1 | end user | **I sign up with a nickname and a password, in one step.**<br>• The nickname is checked by the preset of the policies `preset_sign_up_nickname`, the password by its own ([password.1.1](password.md#password-1-1)), both empty unless an application binds policies to them in a subclass.<br>• Example: given a policy of a length of 12 bound to the password, when alice signs up with `secret`, then `AuthMethodInvalidError` names the field `password` and the policy.<br>• Example: given alice signed up, when `Alice` signs up, then `AuthIdentityConflictError`: the nickname is taken, and told ([methods.4.2](README.md#methods-4-2)). | [methods.3.1](README.md#methods-3-1), [password.1.1](password.md#password-1-1) | Implemented |
+| <a id="nickname-1-1"></a>1.1 | end user | **I sign up with a nickname and a password, in one step.**<br>• The nickname is checked by the preset of the policies `preset_sign_up_nickname`, the password by that of the password ([password.2.1](password.md#password-2-1)), both empty unless an application binds policies to them in a subclass.<br>• Example: given a policy of a length of 12 bound to the password, when alice signs up with `secret`, then `AuthMethodInvalidError` names the field `password` and the policy.<br>• Example: given alice signed up, when `Alice` signs up, then `AuthIdentityConflictError`: the nickname is taken, and told ([methods.4.2](README.md#methods-4-2)). | [methods.3.1](README.md#methods-3-1), [password.1.1](password.md#password-1-1) | Implemented |
 
 ### 2. Signing in
 
@@ -77,7 +77,7 @@ assert isinstance(result, AuthSignedUp)  # one step: never a challenge
 | `parameters` | `AuthStartSignUpParameters` | `AuthPasswordStart`, below. |
 | `values` | `AuthStartSignUpParameters` | The values of the attributes of the session whose source is the client, by their ids ([sessions.1.1](../sessions.md#sessions-1-1)); kept in the record of the sign-up. |
 | `nickname` | `AuthPasswordStart` | The identifier once normalized, NFKC and case-folded; checked by `preset_sign_up_nickname`. |
-| `password` | `AuthPasswordStart` | Normalized to NFKC, never in a `repr`; checked by `preset_sign_up_password`, then hashed. |
+| `password` | `AuthPasswordStart` | Normalized to NFKC, never in a `repr`; checked by `preset_sign_up_password`, `preset_set` of the password to be ([password.2.1](password.md#password-2-1)), then hashed. |
 | `uid` | `AuthSignedUp` | The new profile: 128 random bits, 32 hexadecimal digits. |
 
 Errors: `AuthMethodNotFoundError`, no such method; `AuthItemNotFoundError`,

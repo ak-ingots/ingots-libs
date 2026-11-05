@@ -121,7 +121,7 @@ What a client and an application see and pick before anything.
 
 | # | Actor | Story | Needs | Status |
 |---|---|---|---|---|
-| <a id="auth-1-1"></a>1.1 | client | **I load the metadata of the auth to learn which methods I can sign up and sign in by, so that I show the user those and no others.**<br>• The metadata of the profiles and of the sessions is there, their registries; that of the methods is not.<br>• The metadata lists the methods in the slots of the methods of the application, whatever they are: a method of the core or one of the application's own, each by its name, the path of its slot, with the flows open by it ([methods.1.2](methods/README.md#methods-1-2)). It knows no method of the core by itself: they are a catalogue, bound by the application ([methods.1.1](methods/README.md#methods-1-1)) (the user, 2026-11-04).<br>• The flows a method takes are those it is written for; a contract test of the method checks that it refuses the others (`AuthMethodUnsupportedError`).<br>• Example: given the nickname method bound with its sign-up closed, and the `email_code` one not bound, a client reads `[{name: nickname, flows: {sign_up: false, sign_in: true}}]`: the nickname is there, its sign-up closed for now.<br>• The client calls a method by its own typed service (`Nickname.SignIn`): the list tells only which are there. | [methods.1.1](methods/README.md#methods-1-1) | Draft |
+| <a id="auth-1-1"></a>1.1 | client | **I load the metadata of the auth to learn which methods I can sign up and sign in by, so that I show the user those and no others.**<br>• The metadata of the profiles and of the sessions is there, their registries, and that of the methods with them.<br>• The metadata lists the methods in the slots of the methods of the application, whatever they are: a method of the core or one of the application's own, each by its name, the path of its slot, with the flows open by it ([methods.1.2](methods/README.md#methods-1-2)). It knows no method of the core by itself: they are a catalogue, bound by the application ([methods.1.1](methods/README.md#methods-1-1)) (the user, 2026-11-04).<br>• A method opens the flows it takes by its hooks, `_get_sign_up_enabled`, `_get_sign_in_enabled`, closed in the base: a flow it does not take is listed closed, the client needs no more (the user, 2026-11-05).<br>• Example: given the nickname method bound with its sign-up closed, and the `email_code` one not bound, a client reads `[{name: nickname, sign_up: false, sign_in: true}]`: the nickname is there, its sign-up closed for now.<br>• The client calls a method by its own typed service (`Nickname.SignIn`): the list tells only which are there. | [methods.1.1](methods/README.md#methods-1-1) | Built |
 | <a id="auth-1-2"></a>1.2 | client | **The metadata gives the policies a method checks, the length of a password, so that I check a form before sending it.** | [1.1](#auth-1-1) | Draft |
 | <a id="auth-1-3"></a>1.3 | application | **I import one starter that suits me, `game` or `web`, instead of a dozen classes to pick and subclass, and override only what differs.**<br>• `contrib/starters/`, a flat list, each units an application inherits and overrides, picking the methods and the strategies, or the storage, the cache and the transport too, under an extra of its own when it needs libraries; not "presets", which ingot-auth has twice already.<br>• Its worth grows with all that is bound by hand (the user, 2026-11-04): the methods, the configs of each, their servicers, the strategies of the sessions, of the timing, of the second factor. A starter binds them once, as they go together, and the creation of the project checks it as any application.<br>• Example: given `class AppAuth(AuthWebStarter)`, the application has the sign-up by `email_code`, the sign-in by `nickname` and `email_code`, a sliding month, the oldest session evicted, overriding only the slot of the mail. | [access.1.1](access.md#access-1-1), [sessions.3.1](sessions.md#sessions-3-1), [sessions.3.3](sessions.md#sessions-3-3) | Draft |
 
@@ -146,7 +146,7 @@ The client (story [1.1](#auth-1-1)), in Python for the sketch:
 
 ```python
 metadata = await auth.Get(GetMetadataRequest())
-methods = {method.name: method.flows for method in metadata.methods}
+methods = {method.name: method for method in metadata.methods}
 if "nickname" in methods and methods["nickname"].sign_in:
     ...  # show the form of the nickname and the password
 ```
@@ -155,16 +155,12 @@ The metadata of the methods, a list of those bound:
 
 ```proto
 // ingot_auth/metadata/v1/metadata.proto
+// whether each flow is open, closed as well when the method does not take
+// it; bind comes with the bind
 message Method {
-  // a flow the method takes: open or closed by its toggle; unset: not taken
-  message Flows {
-    optional bool sign_up = 1;
-    optional bool sign_in = 2;
-    optional bool bind = 3;
-  }
-
   string name = 1;  // the path of its slot: nickname, email_code
-  Flows flows = 2;
+  bool sign_up = 2;
+  bool sign_in = 3;
 }
 
 message GetMetadataResponse {

@@ -4,10 +4,6 @@ A part of [the methods](README.md). A nickname and the
 [password](password.md) of the profile, of one step: the identifier is the
 nickname, normalized to NFKC and case-folded, so that `Alice` is `alice`.
 
-Today `ingot_auth.contrib.methods.password.AuthPasswordMethod`, the slot
-`password`; `nickname` in the core after the move and the rename
-([methods.1.1](README.md#methods-1-1)).
-
 ## Stories
 
 ### 1. Signing up

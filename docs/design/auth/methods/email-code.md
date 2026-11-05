@@ -15,10 +15,7 @@ with the hook `_send_code(email, code)`, by the mail of its own, and
 declares it as the slot of its methods,
 `email_code = Slot(AppEmailCodeMethod)`.
 
-Today `ingot_auth.contrib.methods.email.BaseAuthEmailMethod`, the slot
-`email`; `email_code` in the core after the move and the rename
-([methods.1.1](README.md#methods-1-1)). `phone_code` is its twin by SMS, to
-come.
+`phone_code` is its twin by SMS, to come.
 
 ## Stories
 

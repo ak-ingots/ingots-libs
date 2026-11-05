@@ -21,7 +21,7 @@ to build its interface ([1.3](#profile-1-3)).
 
 | # | Actor | Story | Needs | Status |
 |---|---|---|---|---|
-| <a id="profile-1-1"></a>1.1 | operator | **I register the tags and the attributes a profile may hold, each attribute with its type, and rename or delete them; the metadata gives them by their ids.**<br>• The services `Tags` and `Attrs` of `ingot_auth.profile.tags.v1` and `ingot_auth.profile.attrs.v1`: `Create`, `List`, `Rename`, `Delete`. | — | Implemented |
+| <a id="profile-1-1"></a>1.1 | operator | **I register the tags and the attributes a profile may hold, each attribute with its type, and rename or delete them; the metadata gives them by their ids.**<br>• The services `Tags` and `Attrs` of `ingot_auth.profiles.tags.v1` and `ingot_auth.profiles.attrs.v1`: `Create`, `List`, `Rename`, `Delete`. | — | Implemented |
 | <a id="profile-1-2"></a>1.2 | operator | **I set the tags and the values of the attributes of a profile.**<br>• The profile holds only its uid and its time today. | [1.1](#profile-1-1) | Draft |
 | <a id="profile-1-3"></a>1.3 | client | **I get my profile, its tags, its attributes and my permissions, to build my interface, and learn when it changed, so that I show no button the server refuses.**<br>• The server is the truth; the profile a client holds is an aid to its interface, as the catalogue of the permissions is.<br>• The permissions are a part of the profile the client sees, as the tags and the attributes are.<br>• `AuthUserProfile.Get` gives the profile of the caller and its hash, computed once, when the profile comes into the cache with the session ([sessions.2.4](sessions.md#sessions-2-4)), and carried by `AuthCaller`.<br>• Every reply carries the hash in the metadata of its transport, under one name for all, `ingot-auth-user-profile-hash` (the user, 2026-11-03): a header in HTTP, a key of the trailing metadata in gRPC. Not an `ETag`: that is of the resource of the reply. Lowercase with hyphens, as gRPC takes no other key and HTTP does not care; no `X-` (RFC 6648). The core gives the hash, each transport puts it where it puts such things.<br>• The client compares it with its own and asks for the profile again when it differs: a permission granted shows on the next reply, and one taken away hides its button before a refusal.<br>• A refusal, `PERMISSION_DENIED` or 403, stays the safety net: the client asks again on it.<br>• Example: given alice granted `CAN_MODIFY_ITEM`, or tagged `premium`, when her client makes any call, then the reply carries a new hash, the client asks for the profile and shows the button.<br>• A push of the change, by a stream, later if ever: only for an interface that must change without any request. | [1.2](#profile-1-2), [sessions.2.2](sessions.md#sessions-2-2), [sessions.2.4](sessions.md#sessions-2-4), [access.1.1](access.md#access-1-1) | Draft |
 
@@ -71,6 +71,6 @@ if dict(call.trailing_metadata())["ingot-auth-user-profile-hash"] != profile.has
 ## Questions
 
 1. <a id="profile-q1"></a>Parked. The name of the service, `AuthUserProfile`
-   as said, or by the packages of the contracts, `ingot_auth.profile.v1`,
+   as said, or by the packages of the contracts, `ingot_auth.profiles.v1`,
    `Profile`? And the message of the values of the attributes, shared with
    those of a session. Hold [1.3](#profile-1-3), of slice 4.

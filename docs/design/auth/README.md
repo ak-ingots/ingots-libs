@@ -242,7 +242,8 @@ the order of `Needs`: a slice takes no story before those it needs.
    [1.2](methods/README.md#methods-1-2), [1.3](methods/README.md#methods-1-3),
    [2.2](methods/README.md#methods-2-2), [2.4](methods/README.md#methods-2-4),
    [4.1](methods/README.md#methods-4-1), [4.2](methods/README.md#methods-4-2);
-   [password.1.2](methods/password.md#password-1-2);
+   [password.1.2](methods/password.md#password-1-2),
+   [2.1](methods/password.md#password-2-1);
    [nickname.2.1](methods/nickname.md#nickname-2-1);
    [access.1.1](access.md#access-1-1);
    [sessions.1.2](sessions.md#sessions-1-2),
@@ -282,7 +283,8 @@ Later, each in a slice of its own once its needs are built:
 [4.3](methods/README.md#methods-4-3),
 [5.1](methods/README.md#methods-5-1),
 [5.2](methods/README.md#methods-5-2);
-[password.1.3](methods/password.md#password-1-3)–[1.5](methods/password.md#password-1-5);
+[password.1.3](methods/password.md#password-1-3)–[1.5](methods/password.md#password-1-5),
+[2.2](methods/password.md#password-2-2), [2.3](methods/password.md#password-2-3);
 [nickname.3.1](methods/nickname.md#nickname-3-1);
 [email.1.1](methods/email.md#email-1-1), [2.1](methods/email.md#email-2-1),
 [3.1](methods/email.md#email-3-1);

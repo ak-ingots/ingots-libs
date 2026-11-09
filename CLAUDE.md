@@ -73,7 +73,9 @@ Decided in [docs/adr](docs/adr/README.md); the essentials:
 - Composition by inheritance and typed slots (0004); addons ship contract
   tests run by every consumer (0005), under `testing/contracts` (0010); design
   principles and their priority (0006); code layout and naming: member and module order, verbs for
-  methods, `Base` for incomplete classes, prefixed mixin members (0007).
+  methods, `Base` for incomplete classes, prefixed mixin members (0007); a
+  class of ingots suffixed by its role, or by its kind where it has none
+  (`*Unit`, `*Operation`), a dataclass bare (0014).
 - A feature that adds or changes an API, a flow or a domain gets a design
   first, `docs/design/<topic>/README.md` from `docs/design/template.md`: its
   stories by actor, accepted by the code of their consumers in a prototype

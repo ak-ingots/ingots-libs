@@ -6,7 +6,8 @@
 - Deciders: Aliaksandr Karotki
 - Supersedes / Superseded by: its names of the files and the services, the domains of
   the permissions and the rewrite of the imports by
-  [0011](0011-mirror-the-packages-of-grpc-contracts.md)
+  [0011](0011-mirror-the-packages-of-grpc-contracts.md); the names of the RPCs by
+  [0013](0013-name-rpcs-after-their-operations.md)
 
 > In the context of **addons shipping a gRPC contract in a contrib of
 > ingot-grpcio**, facing **file names that are global in a process and that every

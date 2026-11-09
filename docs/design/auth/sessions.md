@@ -51,9 +51,9 @@ The token on every request, turned into a caller.
 | # | Actor | Story | Needs | Status |
 |---|---|---|---|---|
 | <a id="sessions-2-1"></a>2.1 | client | **I send the token with each call, and an expired or revoked one gives one error I can tell from the others, so I ask to sign in again.**<br>• Example: given a session expired, a call gets `UNAUTHENTICATED`, whatever the reason the session closed for. | [2.2](#sessions-2-2) | Draft |
-| <a id="sessions-2-2"></a>2.2 | transport | **I turn the token of a request into a caller, or into the anonymous one with no token, in one call.**<br>• `authenticate(token)` finds the session by the hash of the token, in the cache, or in the storage on a miss; asks the strategy of the lifetime ([3.1](#sessions-3-1)) whether it expired, and closes it if so; gives an `AuthCaller` with the uid, the id of the session and the permissions ([access.1.1](access.md#access-1-1)).<br>• A final method of `AuthSessions`, not an operation (the user, 2026-11-05): the simple first, an operation, with its logs and its run uid, can come later if a caller not yet one needs them.<br>• The caller has the uid of the profile and the permissions of the strategy (the user, 2026-11-05); how the operations of the sessions learn the session, an `AuthCaller(Caller)` with `session_id` or the token in their parameters, is the choice of the pull request that builds it. | [1.2](#sessions-1-2), [3.1](#sessions-3-1), [access.1.1](access.md#access-1-1) | Draft |
+| <a id="sessions-2-2"></a>2.2 | transport | **I turn the token of a request into a caller, or into the anonymous one with no token, in one call.**<br>• `authenticate(token)` finds the session by the hash of the token, in the cache, or in the storage on a miss; asks the strategy of the lifetime ([3.1](#sessions-3-1)) whether it expired, and closes it if so; gives its caller, `AuthCaller` with the uid, the id of the session and the permissions, from the cache, or formed by the access on a miss ([access.1.1](access.md#access-1-1)).<br>• A final method of `AuthSessions`, not an operation (the user, 2026-11-05): the simple first, an operation, with its logs and its run uid, can come later if a caller not yet one needs them.<br>• The caller has the uid of the profile and the permissions of the strategy of the access (the user, 2026-11-05); the session holds none, it stays a session (the user, 2026-11-08); how the operations of the sessions learn the session, an `AuthCaller(Caller)` with `session_id` or the token in their parameters, is the choice of the pull request that builds it. | [1.2](#sessions-1-2), [3.1](#sessions-3-1), [access.1.1](access.md#access-1-1) | Draft |
 | <a id="sessions-2-3"></a>2.3 | operation | **I read the uid of the caller from the metadata, and nothing else of the auth.** | [2.2](#sessions-2-2) | Draft |
-| <a id="sessions-2-4"></a>2.4 | end user | **A change of my profile, a permission granted, a tag, shows on my next request, without signing in again.**<br>• The permissions are computed when the session comes into the cache, and kept there with it, with the rest of the profile the client sees, its tags and its attributes ([profile.1.3](profile.md#profile-1-3)), never in the token nor in the storage: a request that hits the cache reads nothing more (the user, 2026-11-03).<br>• A change of any of them forgets the sessions of the profile in the cache, by the hashes of its open sessions, after the storage commits: the next request misses, loads the session from the storage and computes them again, signed in still. A change that must end the sessions, a block, a stolen account, revokes them instead ([sign-out.1.3](sign-out.md#sign-out-1-3), [sign-out.1.4](sign-out.md#sign-out-1-4)): no token, nothing to take from the cache.<br>• Example: given alice signed in on two devices, when she is granted a permission, then both see it on their next request, neither signs in again; when her sign-in by nickname is switched off, her sessions stay, as they are signed in already, unless the operator revokes them.<br>• The entries of the cache live a TTL, `AUTH_SESSION_CACHE_TTL`, a bound on a change that went past the operations, by hand in the database, or a process stopped between the commit and the forgetting.<br>• A cache of the memory is of one process: who runs more needs a shared one, Redis. | [2.2](#sessions-2-2), [access.1.1](access.md#access-1-1) | Draft |
+| <a id="sessions-2-4"></a>2.4 | end user | **A change of my profile, a permission granted, a tag, shows on my next request, without signing in again.**<br>• The permissions are of the caller, formed after the sign-in and on a miss, and kept in the cache next to the session, by the same hash, apart from it, with the rest of the profile the client sees, its tags and its attributes ([profile.1.3](profile.md#profile-1-3)), never in the token nor in the storage: a request that hits the cache reads nothing more (the user, 2026-11-03, 2026-11-08).<br>• A change of any of them forgets the callers of the profile in the cache, by the hashes of its open sessions, after the storage commits, the sessions kept: the next request misses the caller and forms it again, signed in still. A change that must end the sessions, a block, a stolen account, revokes them instead ([sign-out.1.3](sign-out.md#sign-out-1-3), [sign-out.1.4](sign-out.md#sign-out-1-4)): no token, nothing to take from the cache.<br>• Example: given alice signed in on two devices, when she is granted a permission, then both see it on their next request, neither signs in again; when her sign-in by nickname is switched off, her sessions stay, as they are signed in already, unless the operator revokes them.<br>• The entries of the cache live a TTL, `AUTH_SESSION_CACHE_TTL`, a bound on a change that went past the operations, by hand in the database, or a process stopped between the commit and the forgetting.<br>• A cache of the memory is of one process: who runs more needs a shared one, Redis. | [2.2](#sessions-2-2), [access.1.1](access.md#access-1-1) | Draft |
 
 ### 3. Managing the sessions
 
@@ -91,15 +91,18 @@ sequenceDiagram
     participant Operation
     Client->>Servicer: a call, authorization: Bearer token
     Servicer->>Sessions: authenticate(token)
-    Sessions->>Cache: sessions.get(hash(token))
-    alt a miss: new, forgotten after a change, or past its TTL
+    Sessions->>Cache: sessions.get(hash(token)), callers.get(hash(token))
+    alt the session missed: new, or past its TTL
         Sessions->>Storage: sessions.find(hash(token))
-        Sessions->>Sessions: permissions = the permissions strategy, by the uid
-        Sessions->>Cache: sessions.put(hash(token), session + permissions)
+        Sessions->>Cache: sessions.put(hash(token), session)
+    end
+    alt the caller missed: new, forgotten after a change, or past its TTL
+        Sessions->>Sessions: caller = uid, session id, the permissions of the access by the uid
+        Sessions->>Cache: callers.put(hash(token), caller)
     end
     alt expired
         Sessions->>Storage: sessions.close(session.id, EXPIRED_*)
-        Sessions->>Cache: sessions.forget(hash(token))
+        Sessions->>Cache: sessions.forget(hash(token)), callers.forget(hash(token))
         Sessions-->>Servicer: AuthSessionExpiredError
         Servicer-->>Client: UNAUTHENTICATED
     else open
@@ -119,7 +122,7 @@ stories are taken.
 
 The application (stories [3.1](#sessions-3-1), [3.3](#sessions-3-3)): the
 strategies of the sessions and their configs, in a subclass of the sessions;
-the permissions are of [access](access.md#api-sketch):
+the permissions are of the caller, by [the access](access.md#api-sketch):
 
 ```python
 class AppConfigs(AuthConfigs):
@@ -129,7 +132,6 @@ class AppConfigs(AuthConfigs):
 class AppSessions(AuthSessions):  # the subdomain: its registries and the sessions
     lifetime = Slot(AuthSlidingLifetime)
     limit = Slot(AuthEvictOldestLimit)
-    permissions = Slot(AppPermissions)
 
 class AppAuth(AuthUnit):
     sessions = Slot(AppSessions)
@@ -205,7 +207,7 @@ run checks the token, the expiry and the permissions.
 | Information disclosure | The sessions of another user. | `list_own` lists those of the caller; the others need `CAN_LIST_ANY`. |
 | Denial of service | Sessions piling up. | `AUTH_SESSIONS_MAX`, the sweep; a retention of the closed ones later, with the GDPR. |
 | Denial of service | The storage hit on every request. | The cache; the touch written once per interval. |
-| Elevation of privilege | Permissions stale in a session. | Kept with the session in the cache only, forgotten there by every change, after its commit, and bounded by the TTL of the cache; never in the token nor the storage. |
+| Elevation of privilege | Permissions stale in a caller. | Of the caller, kept next to the session in the cache only, forgotten there by every change, after its commit, and bounded by the TTL of the cache; never in the token nor the storage. |
 
 ## Alternatives
 

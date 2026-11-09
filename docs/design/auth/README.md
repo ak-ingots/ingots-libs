@@ -121,7 +121,7 @@ What a client and an application see and pick before anything.
 
 | # | Actor | Story | Needs | Status |
 |---|---|---|---|---|
-| <a id="auth-1-1"></a>1.1 | client | **I load the metadata of the auth to learn which methods I can sign up and sign in by, so that I show the user those and no others.**<br>• The metadata of the profiles and of the sessions is there, their registries, and that of the methods with them.<br>• The metadata lists the methods in the slots of the methods of the application, whatever they are: a method of the core or one of the application's own, each by its name, the path of its slot, with the flows open by it ([methods.1.2](methods/README.md#methods-1-2)). It knows no method of the core by itself: they are a catalogue, bound by the application ([methods.1.1](methods/README.md#methods-1-1)) (the user, 2026-11-04).<br>• A method opens the flows it takes by its hooks, `_get_sign_up_enabled`, `_get_sign_in_enabled`, closed in the base: a flow it does not take is listed closed, the client needs no more (the user, 2026-11-05).<br>• Example: given the nickname method bound with its sign-up closed, and the `email_code` one not bound, a client reads `[{name: nickname, sign_up: false, sign_in: true}]`: the nickname is there, its sign-up closed for now.<br>• The client calls a method by its own typed service (`Nickname.SignIn`): the list tells only which are there. | [methods.1.1](methods/README.md#methods-1-1) | Built |
+| <a id="auth-1-1"></a>1.1 | client | **I load the metadata of the auth to learn which methods I can sign up and sign in by, so that I show the user those and no others.**<br>• The metadata of the profiles and of the sessions is there, their registries, and that of the methods with them.<br>• The metadata lists the methods in the slots of the methods of the application, whatever they are: a method of the core or one of the application's own, each by its name, the path of its slot, with the flows open by it ([methods.1.2](methods/README.md#methods-1-2)). It knows no method of the core by itself: they are a catalogue, bound by the application ([methods.1.1](methods/README.md#methods-1-1)) (the user, 2026-11-04).<br>• A method opens the flows it takes by its hooks, `_get_sign_up_enabled`, `_get_sign_in_enabled`, closed in the base: a flow it does not take is listed closed, the client needs no more (the user, 2026-11-05).<br>• Example: given the nickname method bound with its sign-up closed, and the `email_code` one not bound, a client reads `[{name: nickname, sign_up: false, sign_in: true}]`: the nickname is there, its sign-up closed for now.<br>• The client calls a method by its own typed service (`Nickname.SignIn`): the list tells only which are there. | [methods.1.1](methods/README.md#methods-1-1) | Implemented |
 | <a id="auth-1-2"></a>1.2 | client | **The metadata gives the policies a method checks, the length of a password, so that I check a form before sending it.** | [1.1](#auth-1-1) | Draft |
 | <a id="auth-1-3"></a>1.3 | application | **I import one starter that suits me, `game` or `web`, instead of a dozen classes to pick and subclass, and override only what differs.**<br>• `contrib/starters/`, a flat list, each units an application inherits and overrides, picking the methods and the strategies, or the storage, the cache and the transport too, under an extra of its own when it needs libraries; not "presets", which ingot-auth has twice already.<br>• Its worth grows with all that is bound by hand (the user, 2026-11-04): the methods, the configs of each, their servicers, the strategies of the sessions, of the timing, of the second factor. A starter binds them once, as they go together, and the creation of the project checks it as any application.<br>• Example: given `class AppAuth(AuthWebStarter)`, the application has the sign-up by `email_code`, the sign-in by `nickname` and `email_code`, a sliding month, the oldest session evicted, overriding only the slot of the mail. | [access.1.1](access.md#access-1-1), [sessions.3.1](sessions.md#sessions-3-1), [sessions.3.3](sessions.md#sessions-3-3) | Draft |
 
@@ -202,10 +202,12 @@ Six months on, the auth failed. Why:
 - A revoked token still worked: the cache was not cleared, or another
   process had its own memory cache. Forgetting follows each close; the memory
   cache is for one process only, said in its docs, Redis for more.
-- The strategy of the permissions was too narrow for the access
-  subdomain. It takes the uid and returns `Permissions`, what the access
-  subdomain will compute too; if it needs the session, it takes the record
-  instead ([access](access.md)).
+- The strategy of the permissions was too narrow. It takes the uid and
+  returns `Permissions`, of the base set and the groups; if it needs the
+  session, it takes the record instead ([access](access.md)).
+- A grant to a group made the sessions of its members stale: the
+  permissions are of the caller, kept apart from the session, so a change
+  forgets the callers only ([access Q8](access.md#access-q8)).
 - An application tuned the configs of one strategy and bound another: the
   sessions lived as long as the defaults of the other. The docstring of each
   strategy names its configs; the rest is the care of the application.
@@ -241,11 +243,13 @@ the order of `Needs`: a slice takes no story before those it needs.
    [password.1.2](methods/password.md#password-1-2),
    [2.1](methods/password.md#password-2-1);
    [nickname.2.1](methods/nickname.md#nickname-2-1);
-   [access.1.1](access.md#access-1-1);
+   [access.1.1](access.md#access-1-1),
+   [2.1](access.md#access-2-1)–[2.5](access.md#access-2-5);
    [sessions.1.2](sessions.md#sessions-1-2),
    [2.1](sessions.md#sessions-2-1)–[2.4](sessions.md#sessions-2-4), and
    [3.1](sessions.md#sessions-3-1) with the fixed strategy only. The methods
-   and their toggles in the metadata, the identities by identifier and the
+   and their toggles in the metadata, the groups, their grants and members,
+   the identities by identifier and the
    password of the profile, a sign-in by nickname, a session in the memory
    storage and cache, `authenticate()`, the gRPC `Nickname.SignIn` and
    `SignIn.Answer`, an asynchronous `_get_caller`; a test signs up, signs
@@ -287,7 +291,7 @@ Later, each in a slice of its own once its needs are built:
 [email-code.2.2](methods/email-code.md#email-code-2-2),
 [3.1](methods/email-code.md#email-code-3-1);
 [factors.1.1](methods/factors.md#factors-1-1)–[1.3](methods/factors.md#factors-1-3);
-[access.1.2](access.md#access-1-2);
+[access.1.2](access.md#access-1-2), [3.1](access.md#access-3-1);
 [sessions.3.6](sessions.md#sessions-3-6),
 [3.7](sessions.md#sessions-3-7);
 [sign-out.1.4](sign-out.md#sign-out-1-4).

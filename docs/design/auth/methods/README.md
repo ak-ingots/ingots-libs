@@ -252,7 +252,7 @@ sequenceDiagram
             Flow-->>Runner: AuthSignInChallenge(attempt_id, challenge of the factor)
         else none
             Flow->>Storage: sessions.open(session), in a transaction
-            Flow->>Cache: sessions.put(hash(token), session + permissions)
+            Flow->>Cache: sessions.put(hash(token), session), callers.put(hash(token), caller)
             Flow-->>Runner: AuthSignedIn(token, session_id)
         end
     end

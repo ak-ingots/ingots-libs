@@ -4,13 +4,14 @@ OWNER := ak-ingots
 REPOS := $(shell grep -v '^\#' repos.txt)
 DEPENDENTS := uv run --quiet --python 3.14 --no-project --with packaging python .github/scripts/dependents.py
 
-.PHONY: help clone pull status check prs ci dep-tree dep-behind dep-next dep-try check-prototypes check-prototype
+.PHONY: help clone pull status check buf prs ci dep-tree dep-behind dep-next dep-try check-prototypes check-prototype
 
 help:
 	@echo "clone   clone missing repositories (gh, uses gh auth)"
 	@echo "pull    fast-forward every repository"
 	@echo "status  branch, local changes and divergence of every repository"
 	@echo "check   make check (lint, test) everywhere, dependencies first"
+	@echo "buf     the Buf CLI the ecosystem pins, into .cache/ (BUF is its path)"
 	@echo "prs     open pull requests across the ecosystem (gh)"
 	@echo "ci      last workflow run of every repository (gh)"
 	@echo "dep-tree    who depends on whom in the ecosystem"
@@ -31,8 +32,18 @@ status:
 	@echo "== (meta)"; git status -sb | head -5
 	@for r in $(REPOS); do echo "== $$r"; git -C $$r status -sb | head -5; done
 
-check:
-	@for r in $(REPOS); do $(MAKE) -C $$r check || exit 1; done
+# The Buf CLI of the ecosystem, one for every addon linting a gRPC contract
+# (ADR 0013): its version is that of the action setup-buf, its CI twin.
+BUF_VERSION := $(shell cat .github/actions/setup-buf/version)
+BUF := $(CURDIR)/.cache/buf/$(BUF_VERSION)/buf
+
+check: buf
+	@for r in $(REPOS); do $(MAKE) -C $$r check BUF=$(BUF) || exit 1; done
+
+buf: $(BUF)
+
+$(BUF):
+	@.github/scripts/install-buf.sh $(dir $(BUF))
 
 prs:
 	@for r in $(REPOS); do echo "== $$r"; gh pr list -R $(OWNER)/$$r; done

@@ -53,7 +53,7 @@ moment: `ingot-settings`, the first idea, has its repository.
 git clone https://github.com/ak-ingots/ingots-libs.git
 cd ingots-libs
 make clone      # missing repositories, via gh
-make check      # lint + test everywhere
+make check      # lint + test everywhere, with the Buf CLI the ecosystem pins
 make status     # what is changed or unpushed, across all repositories
 ```
 

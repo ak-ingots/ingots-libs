@@ -16,7 +16,9 @@ clone of the previous implementation, or `designs/`) are local scratch.
 `make check-prototypes` is this repository's own check, the one its CI runs:
 the design prototypes run, and mypy reports exactly the lines they mark
 `# error:`. `.github/workflows/` also holds what the release workflows of the
-packages call: `dependents` and `index-test`.
+packages call: `dependents` and `index-test`; `.github/actions/setup-buf` puts
+the Buf CLI the ecosystem pins on the PATH of an addon's CI, and `make buf`
+into `.cache/` here, `make check` passing it on as `BUF`.
 
 ## GitHub access
 

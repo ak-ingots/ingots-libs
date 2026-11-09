@@ -1,0 +1,24 @@
+name: setup-buf
+description: >
+  Puts the Buf CLI of the version the ecosystem pins (the file `version` next
+  to this action) on the PATH, cached by the version: an addon shipping a gRPC
+  contract lints it with `make proto-lint` after this step (ADR 0013).
+
+runs:
+  using: composite
+  steps:
+    - name: Read the version
+      id: version
+      shell: bash
+      run: echo "version=$(cat "$GITHUB_ACTION_PATH/version")" >> "$GITHUB_OUTPUT"
+    - uses: actions/cache@v6
+      with:
+        path: ~/.cache/ingots-buf/${{ steps.version.outputs.version }}
+        key: buf-${{ runner.os }}-${{ runner.arch }}-${{ steps.version.outputs.version }}
+    - name: Install Buf
+      shell: bash
+      run: |
+        dir=~/.cache/ingots-buf/${{ steps.version.outputs.version }}
+        "$GITHUB_ACTION_PATH/../../scripts/install-buf.sh" "$dir"
+        echo "$dir" >> "$GITHUB_PATH"
+        "$dir/buf" --version

@@ -72,6 +72,11 @@ Option 2, for every addon shipping a contract.
    and their fields, nor its `api-linter`.
 5. A contract renamed by this breaks its clients: the addon says so in a news
    fragment of its own, and renames all of its RPCs in one release.
+6. An addon shipping a contract lints it: `buf.yaml` names its root and
+   `STANDARD` but for `SERVICE_SUFFIX`, `make proto-lint` runs `$(BUF) lint`
+   in `make lint`, `BUF ?= buf`. The version of Buf is the ecosystem's, one
+   for every addon: the action `setup-buf` of this repository puts it on the
+   PATH in CI, `make buf` here into `.cache/`, which `make check` passes on.
 
 ## Consequences
 
@@ -87,11 +92,8 @@ Option 2, for every addon shipping a contract.
   `Tags.CreateTag`.
 - The RPCs of ingot-auth are renamed, the methods of its servicers and the calls of
   its clients with them.
-
-### Open questions
-
-- `buf lint` in `make check` of an addon with a contract, the exceptions in its
-  `buf.yaml`: the CLI is not on PyPI, so it is installed apart, in CI too.
+- A developer of an addon alone, without this repository, installs Buf on
+  their own, of the version pinned here.
 
 ## Links
 

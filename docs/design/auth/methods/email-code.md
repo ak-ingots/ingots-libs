@@ -141,7 +141,7 @@ sequenceDiagram
                     SignIn--xServicer: AuthMethodDeniedError, the answer stops
                 else has
                     SignIn->>Storage: sessions.open(session), in a transaction
-                    SignIn->>Cache: sessions.put(hash(token), session + permissions)
+                    SignIn->>Cache: sessions.put(hash(token), session), callers.put(hash(token), caller)
                     SignIn-->>Servicer: AuthSignedIn(token, session_id)
                 end
             end

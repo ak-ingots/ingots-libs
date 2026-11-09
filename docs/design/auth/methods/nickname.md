@@ -87,9 +87,9 @@ no `CAN_SIGN_UP`.
 ```proto
 // ingot_auth/methods/nickname/v1/nickname.proto
 service Nickname {
-  rpc SignUp(SignUpRequest) returns (ingot_auth.sign_up.v1.SignUpResult);
-  rpc SignIn(SignInRequest) returns (ingot_auth.sign_in.v1.SignInResult);
-  rpc Bind(BindRequest) returns (ingot_auth.bind.v1.BindResult);
+  rpc SignUp(SignUpRequest) returns (SignUpResponse);
+  rpc SignIn(SignInRequest) returns (SignInResponse);
+  rpc Bind(BindRequest) returns (BindResponse);
 }
 
 message SignUpRequest {
@@ -107,15 +107,31 @@ message SignInRequest {
 message BindRequest {
   string nickname = 1;
 }
+
+// each response holds the result of its flow, of the core
+message SignUpResponse {
+  ingot_auth.sign_up.v1.SignUpResult result = 1;
+}
+
+message SignInResponse {
+  ingot_auth.sign_in.v1.SignInResult result = 1;
+}
+
+message BindResponse {
+  ingot_auth.bind.v1.BindResult result = 1;
+}
 ```
 
 ```python
-reply = await nickname.SignIn(SignInRequest(nickname="alice", password="..."))
-if reply.HasField("challenge"):  # her second factor
-    reply = await sign_in.Answer(
-        AnswerRequest(attempt_id=reply.challenge.attempt_id, code=code_from_the_user)
+result = (
+    await nickname.SignIn(SignInRequest(nickname="alice", password="..."))
+).result
+if result.HasField("challenge"):  # her second factor
+    request = AnswerSignInRequest(
+        attempt_id=result.challenge.attempt_id, code=code_from_the_user
     )
-token = reply.signed_in.token
+    result = (await sign_in.AnswerSignIn(request)).result
+token = result.signed_in.token
 ```
 
 The message of the values of the attributes is to be decided with the slice

@@ -21,7 +21,7 @@ mail and the `email_code` method share the sending, `_send_code`.
 
 | # | Actor | Story | Needs | Status |
 |---|---|---|---|---|
-| <a id="factors-1-1"></a>1.1 | end user | **After my password, the sign-in asks for my second factor, if I turned one on.**<br>• The flow, once the profile is found and may sign in, asks the strategy in the slot `second_factor` of the sign-in whether this profile, by this method, needs a factor and which; the factors are entities in the slot `factors`, `email_code`, `phone_code`, `totp`.<br>• `AuthNoSecondFactor`, none; `AuthProfileSecondFactor`, the factor the user turned on, none for the methods of a code. No default, as every strategy.<br>• The factor starts, the flow keeps an attempt waiting for it, and the client gets a challenge, as from a method of two steps; the answer goes to the factor by the attempt, `SignIn.Answer` ([methods.2.2](README.md#methods-2-2)).<br>• Example: given alice with the code by mail on, when she signs in by nickname and password, then the reply is a challenge of 6 digits, the mail brings the code, and her answer opens the session. | [methods.4.1](README.md#methods-4-1) | Draft |
+| <a id="factors-1-1"></a>1.1 | end user | **After my password, the sign-in asks for my second factor, if I turned one on.**<br>• The flow, once the profile is found and may sign in, asks the strategy in the slot `second_factor` of the sign-in whether this profile, by this method, needs a factor and which; the factors are entities in the slot `factors`, `email_code`, `phone_code`, `totp`.<br>• `AuthNoSecondFactor`, none; `AuthProfileSecondFactor`, the factor the user turned on, none for the methods of a code. No default, as every strategy.<br>• The factor starts, the flow keeps an attempt waiting for it, and the client gets a challenge, as from a method of two steps; the answer goes to the factor by the attempt, `SignIn.AnswerSignIn` ([methods.2.2](README.md#methods-2-2)).<br>• Example: given alice with the code by mail on, when she signs in by nickname and password, then the reply is a challenge of 6 digits, the mail brings the code, and her answer opens the session. | [methods.4.1](README.md#methods-4-1) | Draft |
 | <a id="factors-1-2"></a>1.2 | end user | **I turn on the code by mail, or by SMS, as my second factor, once that email or phone is bound to my profile.** | [1.1](#factors-1-1), [methods.5.1](README.md#methods-5-1) | Draft |
 | <a id="factors-1-3"></a>1.3 | end user | **I enroll an authenticator app: the secret shown as a QR code, confirmed by its first code.** | [1.1](#factors-1-1), [sessions.2.2](../sessions.md#sessions-2-2) | Draft |
 
@@ -43,7 +43,7 @@ sequenceDiagram
     Method-)Mail: the code, in the background
     Mail-)User: the code
     User->>Client: 123456
-    Client->>Flow: SignIn.Answer(attempt_id, code)
+    Client->>Flow: SignIn.AnswerSignIn(attempt_id, code)
     Flow-->>Client: SignInResult.signed_in = {token, session_id}
 ```
 

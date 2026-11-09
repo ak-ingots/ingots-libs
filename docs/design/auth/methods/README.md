@@ -98,7 +98,7 @@ for, of the method or of a factor, and the answer goes there.
 | # | Actor | Story | Needs | Status |
 |---|---|---|---|---|
 | <a id="methods-2-1"></a>2.1 | author of a method | **I write a method once, a start of each flow it takes and the answers; a method of one step verifies at its start.**<br>• `BaseAuthMethod[Start, Answer, State]`: `start_sign_up(start)`, `start_sign_in(start)` and `answer(state, answer)` give a step, `AuthChallenge(challenge, state)`, the challenge to the client and the state kept by the server, or `AuthVerified(subject, secret)`, the subject unique within the method and, on a sign-up, what the method keeps to verify it later, the hash of a password.<br>• A method takes the flows it overrides the start of; the others raise `AuthMethodUnsupportedError`. A method of one step overrides no answer: an answer to it is refused, `AuthMethodRefusedError`, the same as a wrong one.<br>• A start checks what a client gave by the presets of the policies of the method, its slots `preset_<flow>_<field>`: `AuthMethodInvalidError` names the field and the policy broken, never the value.<br>• The start of the bind comes with the bind ([5.1](#methods-5-1)); the identifier in place of the subject of a method with [2.4](#methods-2-4). | — | Implemented |
-| <a id="methods-2-2"></a>2.2 | client | **I start a flow by the service of the method, its fields typed, and answer any challenge by the one answer of the flow.**<br>• A method has a service of its own in the contract of a transport, a start a flow it takes: `Nickname.SignUp`, `Nickname.SignIn`, `Nickname.Bind`; `EmailCode.StartSignUp`, `EmailCode.StartSignIn`, `EmailCode.StartBind`.<br>• A flow has one answer, `SignUp.Answer`, `SignIn.Answer`, `Bind.Answer`, by the id of the attempt: whose challenge it is, of the method or of a factor, is the attempt's, not the client's. The answer is a `oneof`, a code first, an assertion of a passkey later.<br>• Every start and every answer give the result of the flow, a challenge or its end: the profile signed up, the session signed in, the identifier bound. The core keeps them, shared by all. The operations of the core stay generic: the servicer of a method turns its messages into the parameters of the method and runs them.<br>• Example: given the nickname method, a client calls `Nickname.SignIn` with a nickname and a password, and gets the token at once; given alice's second factor on, it gets a challenge, and answers it by `SignIn.Answer`.<br>• Example: given the `email_code` method, a client calls `EmailCode.StartSignIn` with the email, then `SignIn.Answer` with the code and the attempt.<br>• The statuses of the errors, gRPC (the user, 2026-11-05): refused, `AuthMethodRefusedError`, `UNAUTHENTICATED`; the attempt gone, `AuthAttemptNotFoundError`, `NOT_FOUND`; denied by the profile, `AuthMethodDeniedError`, `PERMISSION_DENIED`, as the refusal of a toggle is already ([1.2](#methods-1-2)); invalid, `AuthMethodInvalidError`, `INVALID_ARGUMENT`; unsupported, `AuthMethodUnsupportedError`, `FAILED_PRECONDITION`. Policies of `AuthGrpcErrors`, they come with the first servicer of a method. | [1.1](#methods-1-1) | Draft |
+| <a id="methods-2-2"></a>2.2 | client | **I start a flow by the service of the method, its fields typed, and answer any challenge by the one answer of the flow.**<br>• A method has a service of its own in the contract of a transport, a start a flow it takes: `Nickname.SignUp`, `Nickname.SignIn`, `Nickname.Bind`; `EmailCode.StartSignUp`, `EmailCode.StartSignIn`, `EmailCode.StartBind`.<br>• A flow has one answer, `SignUp.AnswerSignUp`, `SignIn.AnswerSignIn`, `Bind.AnswerBind`, by the id of the attempt: whose challenge it is, of the method or of a factor, is the attempt's, not the client's. The answer is a `oneof`, a code first, an assertion of a passkey later.<br>• Every start and every answer give the result of the flow in a response of their own, a challenge or its end: the profile signed up, the session signed in, the identifier bound. The core keeps them, shared by all. The operations of the core stay generic: the servicer of a method turns its messages into the parameters of the method and runs them.<br>• Example: given the nickname method, a client calls `Nickname.SignIn` with a nickname and a password, and gets the token at once; given alice's second factor on, it gets a challenge, and answers it by `SignIn.AnswerSignIn`.<br>• Example: given the `email_code` method, a client calls `EmailCode.StartSignIn` with the email, then `SignIn.AnswerSignIn` with the code and the attempt.<br>• The statuses of the errors, gRPC (the user, 2026-11-05): refused, `AuthMethodRefusedError`, `UNAUTHENTICATED`; the attempt gone, `AuthAttemptNotFoundError`, `NOT_FOUND`; denied by the profile, `AuthMethodDeniedError`, `PERMISSION_DENIED`, as the refusal of a toggle is already ([1.2](#methods-1-2)); invalid, `AuthMethodInvalidError`, `INVALID_ARGUMENT`; unsupported, `AuthMethodUnsupportedError`, `FAILED_PRECONDITION`. Policies of `AuthGrpcErrors`, they come with the first servicer of a method. | [1.1](#methods-1-1) | Draft |
 | <a id="methods-2-3"></a>2.3 | client | **A step that sends something replies at once, describing the next step, and sends in the background.**<br>• The client shows the form of the code without waiting for the mail, and a bound email and an unbound one reply in the same time, so the time tells nothing of who signed up.<br>• The core runs the hook of the sending, `_send_code`, in a task of asyncio of its own, holding a reference to it until it ends; a failure is logged, the attempt stays, the user asks for another code ([email-code.2.2](email-code.md#email-code-2-2)). An application with a queue of its own puts the mail into it from the hook. The factors of a code send the same way.<br>• Today the `email` method, `email_code` to be, sends before it replies.<br>• The task lost with the process: [Q1](#methods-q1). | [2.1](#methods-2-1) | Draft |
 | <a id="methods-2-4"></a>2.4 | end user | **What I sign in by is bound to my profile once, whatever method uses it: my email bound, I sign in by it with my password or by its code.**<br>• An identity is `(kind, value)` bound to a uid, the kind that of the identifier, `nickname`, `email`, `phone`, `google`, not the name of a method: the methods `email` and `email_code` find the same profile by the same email.<br>• A method names the kind of its identifier, a ClassVar; the subject of `AuthVerified` is the value.<br>• Today an identity is `(method, subject)`. | [2.1](#methods-2-1) | Draft |
 | <a id="methods-2-5"></a>2.5 | end user | **An identifier of mine that may be someone else's, an email, a phone, is verified as mine before anyone signs in by it; one that is only a name, a nickname, is not.**<br>• The kind of an identifier says whether it needs a verification and which: an email and a phone by a code sent to them, a nickname none, the id of a provider by its token, verified by the method itself.<br>• A verification is not a second factor: it proves whose the identifier is, once, on a sign-up or a bind; a factor proves who signs in, every time.<br>• A method of a code verifies its identifier by its own credential: a sign-up by `email_code` needs no verification more. A method of a password does not: the sign-up by `email` and a password binds the email unverified till its code ([email.1.1](email.md#email-1-1)).<br>• An unverified identifier is as absent (the user, 2026-11-04): it is not in the storage at all. Till its code it lives in the attempt, in the cache, with what the sign-up or the bind keeps, the hash of the password; the answer verifies it and writes it all in one transaction, the profile last ([the flow](#verification-the-storage-last)). An attempt not answered expires, `AUTH_ATTEMPT_TTL`, and leaves nothing.<br>• So no one blocks an owner from an address not theirs by taking it first, all of them in a row: whoever verifies first takes it; and no one fills the storage with profiles never verified. A flood of the cache is of the infrastructure in front.<br>• The storage keeps the verified only, so an identity has no flag of it, and its uniqueness is a plain index of `(kind, value)`.<br>• Example: given mallory started a sign-up with alice@example.com and a password, when alice signs up with it and answers her code, then it is hers; mallory's attempt answers no code and expires.<br>• The verification of an email and the code by mail as a factor share the sending, `_send_code`. | [2.4](#methods-2-4) | Draft |
@@ -148,7 +148,7 @@ sequenceDiagram
         Note over Client: goes on: keeps the token of a sign-in
     else verified, a second factor asked
         Server-->>Client: {Flow}Result.challenge = {attempt_id, the factor}
-        Note over Client: the form of the factor, answered by {Flow}.Answer
+        Note over Client: the form of the factor, answered by {Flow}.Answer{Flow}
     else invalid, a policy broken
         Server-->>Client: INVALID_ARGUMENT (AuthMethodInvalidError)
         Note over Client: the form again, the field named
@@ -179,7 +179,7 @@ sequenceDiagram
     Method-)Outside: the code, in the background, or nothing
     Outside-)User: the code
     User->>Client: the code
-    Client->>Flow: {Flow}.Answer(attempt_id, code)
+    Client->>Flow: {Flow}.Answer{Flow}(attempt_id, code)
     alt verified
         Flow-->>Client: {Flow}Result: signed up, signed in, bound
     else wrong, under the limit of failures
@@ -258,8 +258,8 @@ sequenceDiagram
     end
     Note over Flow: sleeps until the floor, a refusal raised as late
     Runner-->>Servicer: the result, or the error
-    Servicer->>Servicer: result → SignInResult, error → status
-    Note over Servicer,Storage: ⋮ an answer: SignIn.Answer → sign_in.op_answer ⋮
+    Servicer->>Servicer: result → SignInResponse(SignInResult), error → status
+    Note over Servicer,Storage: ⋮ an answer: SignIn.AnswerSignIn → sign_in.op_answer ⋮
     Servicer->>Runner: run(op_answer, AuthAnswerSignInParameters(attempt_id, answer))
     Runner->>Flow: _run: attempts.take(attempt_id)
     Flow->>Flow: whose step: the method's answer(state, answer), or the factor's
@@ -356,22 +356,32 @@ class AuthNicknameConfigs(Configs):
 ```
 
 The services: of a method its typed starts, of a flow its one answer; the
-results shared, in the core:
+results shared, in the core. Every RPC has its own request and response, by
+ADRs 0009 and 0013, the response holding the result of the flow, so that a
+field may join one RPC alone:
 
 ```proto
 // ingot_auth/methods/nickname/v1/nickname.proto
 service Nickname {
-  rpc SignUp(SignUpRequest) returns (ingot_auth.sign_up.v1.SignUpResult);
-  rpc SignIn(SignInRequest) returns (ingot_auth.sign_in.v1.SignInResult);
-  rpc Bind(BindRequest) returns (ingot_auth.bind.v1.BindResult);
+  rpc SignUp(SignUpRequest) returns (SignUpResponse);
+  rpc SignIn(SignInRequest) returns (SignInResponse);
+  rpc Bind(BindRequest) returns (BindResponse);
+}
+
+message SignInResponse {
+  ingot_auth.sign_in.v1.SignInResult result = 1;
 }
 
 // ingot_auth/sign_in/v1/sign_in.proto, and alike for the sign-up and the bind
 service SignIn {
-  rpc Answer(AnswerRequest) returns (SignInResult);
+  rpc AnswerSignIn(AnswerSignInRequest) returns (AnswerSignInResponse);
 }
 
-message AnswerRequest {
+message AnswerSignInResponse {
+  SignInResult result = 1;
+}
+
+message AnswerSignInRequest {
   string attempt_id = 1;
   oneof answer {
     string code = 2;  // of a mail, an SMS, an authenticator app
@@ -415,7 +425,7 @@ What the core gives, by package (ADR 0007):
   the same, so it knows it; `Any` only hides it from the generated code, the
   reflection and the docs, and a wrong message is found at run time. A
   service a method types each start.
-- **An answer a method**, `EmailCode.AnswerSignIn`. The second step may be
+- **An answer a method**, in the service of the method, `EmailCode.AnswerSignIn`. The second step may be
   of a factor, not of the method: the client would have to know whose it
   is. One answer a flow, the attempt knowing.
 - **The second factor in the method**, a mixin of the methods of one step
@@ -444,3 +454,16 @@ What the core gives, by package (ADR 0007):
 1. <a id="methods-q1"></a>Parked. The task of the sending is lost if the
    process stops before the mail is out. Enough until a queue of the
    ecosystem exists? Holds [2.3](#methods-2-3), of slice 3.
+2. <a id="methods-q2"></a>Open. The response of a method holds the result of
+   its flow, a message of another subdomain: `nickname.proto` imports
+   `ingot_auth/sign_in/v1/sign_in.proto`, the import between subdomains
+   ADR 0011 leaves open. `make proto` makes relative only the imports of the
+   neighbours, `from . import`; the generated `nickname_pb2.py` would import
+   `ingot_auth.sign_in.v1`, a package no wheel has. The proposal: the rewrite
+   prefixes every `from ingot_auth.<path>.v<N> import` with the package of
+   the root of the contract,
+   `from ingot_auth.contrib.transports.grpcio.proto.ingot_auth.sign_in.v1
+   import`, one pattern at any depth; the neighbours keep `from . import`.
+   Against: a copy of the result in every method, as 0009 has for a public
+   view, which a client would tell apart. Holds [2.2](#methods-2-2), of
+   slice 2.

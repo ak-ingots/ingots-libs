@@ -36,7 +36,7 @@ declares it as the slot of its methods,
 
 | # | Actor | Story | Needs | Status |
 |---|---|---|---|---|
-| <a id="email-code-3-1"></a>3.1 | end user | **I add my email to my profile, verified by the code sent to it, and sign in by a code to it, or take that code as my second factor.**<br>• The code of the bind is the verification of the email ([methods.2.5](README.md#methods-2-5)): two steps, `EmailCode.StartBind` then `Bind.Answer`; nothing is stored before the code, and a verified email of another profile is answered as a free one, its owner told by mail.<br>• It opens a way to sign in: by a code sent to the email.<br>• It opens a second factor: the code by mail, for the sign-ins by a password or a provider, once the user turns it on ([factors.1.2](factors.md#factors-1-2)).<br>• With the same bind it opens the sign-in by the email and the password, if the profile has one ([email.3.1](email.md#email-3-1)).<br>• Example: given alice signed up by nickname, when she binds alice@example.com and answers its code, then she may sign in by a code to it, and turn on the code by mail after her password. | [methods.5.1](README.md#methods-5-1), [methods.2.5](README.md#methods-2-5) | Draft |
+| <a id="email-code-3-1"></a>3.1 | end user | **I add my email to my profile, verified by the code sent to it, and sign in by a code to it, or take that code as my second factor.**<br>• The code of the bind is the verification of the email ([methods.2.5](README.md#methods-2-5)): two steps, `EmailCode.StartBind` then `Bind.AnswerBind`; nothing is stored before the code, and a verified email of another profile is answered as a free one, its owner told by mail.<br>• It opens a way to sign in: by a code sent to the email.<br>• It opens a second factor: the code by mail, for the sign-ins by a password or a provider, once the user turns it on ([factors.1.2](factors.md#factors-1-2)).<br>• With the same bind it opens the sign-in by the email and the password, if the profile has one ([email.3.1](email.md#email-3-1)).<br>• Example: given alice signed up by nickname, when she binds alice@example.com and answers its code, then she may sign in by a code to it, and turn on the code by mail after her password. | [methods.5.1](README.md#methods-5-1), [methods.2.5](README.md#methods-2-5) | Draft |
 
 ## Flows
 
@@ -65,7 +65,7 @@ sequenceDiagram
         Note over Server: no mail, the same reply in the same time
     end
     User->>Client: 123456
-    Client->>Flow: SignIn.Answer(attempt_id, code)
+    Client->>Flow: SignIn.AnswerSignIn(attempt_id, code)
     alt the code is right
         Flow-->>Client: SignInResult.signed_in = {token, session_id}
         Note over Client: keeps the token, signed in
@@ -203,26 +203,33 @@ between.
 ### The service, gRPC: Draft
 
 The starts of the method; the answers by the services of the flows,
-`SignUp.Answer`, `SignIn.Answer`, `Bind.Answer` ([methods.2.2](README.md#methods-2-2)):
+`SignUp.AnswerSignUp`, `SignIn.AnswerSignIn`, `Bind.AnswerBind` ([methods.2.2](README.md#methods-2-2)):
 
 ```proto
 // ingot_auth/methods/email_code/v1/email_code.proto
 service EmailCode {
-  rpc StartSignUp(StartRequest) returns (ingot_auth.sign_up.v1.SignUpResult);
-  rpc StartSignIn(StartRequest) returns (ingot_auth.sign_in.v1.SignInResult);
-  rpc StartBind(StartRequest) returns (ingot_auth.bind.v1.BindResult);
+  rpc StartSignUp(StartSignUpRequest) returns (StartSignUpResponse);
+  rpc StartSignIn(StartSignInRequest) returns (StartSignInResponse);
+  rpc StartBind(StartBindRequest) returns (StartBindResponse);
 }
 
-message StartRequest {
+message StartSignInRequest {
   string email = 1;
   // the values of the attributes of the session, by their ids
 }
+
+message StartSignInResponse {
+  ingot_auth.sign_in.v1.SignInResult result = 1;
+}
+
+// and alike for the sign-up and the bind, each its own request and response
 ```
 
 ```python
-reply = await email_code.StartSignIn(StartRequest(email="alice@example.com"))
-reply = await sign_in.Answer(
-    AnswerRequest(attempt_id=reply.challenge.attempt_id, code=code_from_the_user)
+request = StartSignInRequest(email="alice@example.com")
+result = (await email_code.StartSignIn(request)).result
+request = AnswerSignInRequest(
+    attempt_id=result.challenge.attempt_id, code=code_from_the_user
 )
-token = reply.signed_in.token
+token = (await sign_in.AnswerSignIn(request)).result.signed_in.token
 ```

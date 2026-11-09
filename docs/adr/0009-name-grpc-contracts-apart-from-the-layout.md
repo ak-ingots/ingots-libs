@@ -4,8 +4,8 @@
 - Domains: grpc, tooling
 - Date: 2026-11-01
 - Deciders: Aliaksandr Karotki
-- Supersedes / Superseded by: its names of the files and the services, the domains of
-  the permissions and the rewrite of the imports by
+- Supersedes / Superseded by: its names of the files and the services, their place
+  under the contrib, the domains of the permissions and the rewrite of the imports by
   [0011](0011-mirror-the-packages-of-grpc-contracts.md); the names of the RPCs by
   [0013](0013-name-rpcs-after-their-operations.md)
 

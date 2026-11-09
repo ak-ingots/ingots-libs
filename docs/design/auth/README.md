@@ -134,7 +134,7 @@ sequenceDiagram
     actor User as end user
     participant Client
     participant Server as Metadata servicer
-    Client->>Server: Metadata.Get()
+    Client->>Server: Metadata.GetMetadata()
     Server-->>Client: methods = [nickname: {sign_in}, email_code: {sign_up, sign_in}]
     Note over Client: the forms of the methods open, sign-in by nickname or by a code by mail
     User->>Client: picks the code by mail
@@ -145,7 +145,7 @@ sequenceDiagram
 The client (story [1.1](#auth-1-1)), in Python for the sketch:
 
 ```python
-metadata = await auth.Get(GetMetadataRequest())
+metadata = await auth.GetMetadata(GetMetadataRequest())
 methods = {method.name: method for method in metadata.methods}
 if "nickname" in methods and methods["nickname"].sign_in:
     ...  # show the form of the nickname and the password

@@ -34,23 +34,23 @@ sequenceDiagram
     participant Client
     participant Server as any servicer
     participant Profile as AuthUserProfile servicer
-    Client->>Profile: AuthUserProfile.Get(), Bearer token
+    Client->>Profile: AuthUserProfile.GetProfile(), Bearer token
     Profile-->>Client: {tags, attrs, permissions}, hash h1
     Note over Client: builds the interface, keeps h1
     Client->>Server: a call, Bearer token
     Server-->>Client: the result, ingot-auth-user-profile-hash: h2
     Note over Client: h2 is not h1
-    Client->>Profile: AuthUserProfile.Get()
+    Client->>Profile: AuthUserProfile.GetProfile()
     Profile-->>Client: the profile again, h2
 ```
 
 ## API sketch
 
 ```proto
-// The package and the path by ADRs 0009 and 0011, to be named with the
-// slice that brings it.
+// The package and the path by ADRs 0009 and 0011, the RPCs by 0013, to be
+// named with the slice that brings it.
 service AuthUserProfile {
-  rpc Get(GetProfileRequest) returns (GetProfileResponse);
+  rpc GetProfile(GetProfileRequest) returns (GetProfileResponse);
 }
 
 message GetProfileResponse {
@@ -62,10 +62,10 @@ message GetProfileResponse {
 ```
 
 ```python
-profile = await user_profile.Get(GetProfileRequest(), metadata=auth)
+profile = await user_profile.GetProfile(GetProfileRequest(), metadata=auth)
 reply, call = await shop.Buy.with_call(request, metadata=auth)
 if dict(call.trailing_metadata())["ingot-auth-user-profile-hash"] != profile.hash:
-    profile = await user_profile.Get(GetProfileRequest(), metadata=auth)
+    profile = await user_profile.GetProfile(GetProfileRequest(), metadata=auth)
 ```
 
 ## Questions

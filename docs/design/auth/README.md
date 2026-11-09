@@ -225,7 +225,7 @@ Six months on, the auth failed. Why:
 
 Of this file: none now.
 
-Those the next slice, 2, needs answered: [methods Q2](methods/README.md#methods-q2), the import of the results of the flows.
+Those the next slice, 2, needs answered: none now.
 
 ## Slices
 

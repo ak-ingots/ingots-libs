@@ -404,10 +404,10 @@ What the core gives, by package (ADR 0007):
 - `ingot_auth/sign_in/`: `op_start`, `op_answer`, as those of the sign-up,
   over a base of the flows they share (`proceed`, the attempt, the factor).
 - `ingot_auth/contrib/transports/grpcio/methods/<method>.py`: the servicer of
-  a method of the core, its proto under
-  `proto/ingot_auth/methods/<method>/v1/`; the services of the flows, their
-  answer and their results, under `proto/ingot_auth/sign_up/v1/`,
-  `proto/ingot_auth/sign_in/v1/` and `proto/ingot_auth/bind/v1/`.
+  a method of the core; its contract in the package of the method,
+  `ingot_auth/methods/<method>/v1/`, the services of the flows, their answer
+  and their results, in `ingot_auth/sign_up/v1/`, `ingot_auth/sign_in/v1/` and
+  `ingot_auth/bind/v1/` (ADR 0011), the code generated next to each.
 
 ## Threats
 
@@ -454,16 +454,9 @@ What the core gives, by package (ADR 0007):
 1. <a id="methods-q1"></a>Parked. The task of the sending is lost if the
    process stops before the mail is out. Enough until a queue of the
    ecosystem exists? Holds [2.3](#methods-2-3), of slice 3.
-2. <a id="methods-q2"></a>Open. The response of a method holds the result of
-   its flow, a message of another subdomain: `nickname.proto` imports
-   `ingot_auth/sign_in/v1/sign_in.proto`, the import between subdomains
-   ADR 0011 leaves open. `make proto` makes relative only the imports of the
-   neighbours, `from . import`; the generated `nickname_pb2.py` would import
-   `ingot_auth.sign_in.v1`, a package no wheel has. The proposal: the rewrite
-   prefixes every `from ingot_auth.<path>.v<N> import` with the package of
-   the root of the contract,
-   `from ingot_auth.contrib.transports.grpcio.proto.ingot_auth.sign_in.v1
-   import`, one pattern at any depth; the neighbours keep `from . import`.
-   Against: a copy of the result in every method, as 0009 has for a public
-   view, which a client would tell apart. Holds [2.2](#methods-2-2), of
-   slice 2.
+2. <a id="methods-q2"></a>Answered: the response of a method holds the result
+   of its flow, a message of another subdomain, imported as `protoc` writes it:
+   the contracts lie in the package of the addon at the path of their proto
+   package, their code generated next to them, so `ingot_auth.sign_in.v1` is
+   there (ADR 0011, the user, 2026-11-09: "пора остановиться и прошлую идею
+   признать неудачной"). The rewrite of the imports is gone, not extended.

@@ -91,8 +91,9 @@ Decided in [docs/adr](docs/adr/README.md); the essentials:
   `make dep-try OF=<package>` runs the dependents.
 - An addon shipping a gRPC contract puts a service of a subdomain into the package
   `ingot_<name>.<path>.v<N>` and the file `ingot_<name>/<path>/v<N>/<service>.proto`,
-  its contrib following the subdomains of the core, and makes the imports of the
-  generated code relative (0009, 0011); an RPC is named as Google AIP names
+  at that path in its own package, its code generated next to it and imported
+  as `protoc` writes it, its contrib following the subdomains of the core
+  (0009, 0011); an RPC is named as Google AIP names
   methods, a verb then its subject, `ListTags(ListTagsRequest)`, within what
   Buf `STANDARD` passes (0013).
 - Documentation: the meta repository lives on GitHub only. Packages publish

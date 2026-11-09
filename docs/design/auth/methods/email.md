@@ -31,8 +31,8 @@ stripped and case-folded, the same as that of the
 ```proto
 // ingot_auth/methods/email/v1/email.proto
 service Email {
-  rpc SignUp(SignUpRequest) returns (ingot_auth.sign_up.v1.SignUpResult);
-  rpc SignIn(SignInRequest) returns (ingot_auth.sign_in.v1.SignInResult);
+  rpc SignUp(SignUpRequest) returns (SignUpResponse);
+  rpc SignIn(SignInRequest) returns (SignInResponse);
 }
 
 message SignInRequest {

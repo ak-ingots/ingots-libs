@@ -225,7 +225,7 @@ Six months on, the auth failed. Why:
 
 Of this file: none now.
 
-Those the next slice, 2, needs answered: none now.
+Those the next slice, 2, needs answered: [methods Q2](methods/README.md#methods-q2), the import of the results of the flows.
 
 ## Slices
 
@@ -252,7 +252,7 @@ the order of `Needs`: a slice takes no story before those it needs.
    the identities by identifier and the
    password of the profile, a sign-in by nickname, a session in the memory
    storage and cache, `authenticate()`, the gRPC `Nickname.SignIn` and
-   `SignIn.Answer`, an asynchronous `_get_caller`; a test signs up, signs
+   `SignIn.AnswerSignIn`, an asynchronous `_get_caller`; a test signs up, signs
    in, calls an operation as the user.
 3. [sessions.3.1](sessions.md#sessions-3-1) the sliding strategies, the
    touch, the lazy close; [sessions.1.3](sessions.md#sessions-1-3); the

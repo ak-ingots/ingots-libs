@@ -37,7 +37,7 @@ sequenceDiagram
     participant Flow as SignIn servicer
     participant Mail as mail of the app
     User->>Client: alice, her password
-    Client->>Method: Nickname.SignIn(nickname, password, values)
+    Client->>Method: Nickname.SignIn(nickname, password, attr_values)
     Method-->>Client: SignInResult.challenge = {attempt_id, email_code: {length: 6}}
     Note over Client: the form of the code, at once
     Method-)Mail: the code, in the background

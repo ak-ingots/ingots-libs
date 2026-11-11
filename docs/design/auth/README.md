@@ -48,7 +48,7 @@ implemented once built; the rest waits as drafts.
 | [sessions.md](sessions.md) | What a sign-in opens: the token, the attributes, the work in a session, the lifetime and the limit |
 | [sign-out.md](sign-out.md) | How a session ends by a user or an operator, and a block |
 | [access.md](access.md) | What a caller may do: the permissions, the users and the groups |
-| [profile.md](profile.md) | What the auth knows of a user: the tags, the attributes, the permissions, and the profile a client sees |
+| [profile.md](profile.md) | What the auth knows of a user: the tags, the attributes, the permissions, and the profile a client sees; its version and history; its data by the GDPR |
 
 ## The concept
 
@@ -92,7 +92,8 @@ Three questions, asked in turn on the way of a request:
 - **The author of an operation** of the application: needs the uid of the
   caller, and nothing else of the auth.
 - **The operator**: signs out every session of a profile, blocks a profile,
-  clears the expired sessions, sees when and where a profile signed in.
+  clears the expired sessions, sees when and where a profile signed in;
+  finds, creates and deletes a profile, sees its history.
 
 ## Domain
 
@@ -294,7 +295,10 @@ Later, each in a slice of its own once its needs are built:
 [access.1.2](access.md#access-1-2), [3.1](access.md#access-3-1);
 [sessions.3.6](sessions.md#sessions-3-6),
 [3.7](sessions.md#sessions-3-7);
-[sign-out.1.4](sign-out.md#sign-out-1-4).
+[sign-out.1.4](sign-out.md#sign-out-1-4);
+[profile.1.4](profile.md#profile-1-4)–[1.8](profile.md#profile-1-8),
+[2.1](profile.md#profile-2-1),
+[3.1](profile.md#profile-3-1)–[3.4](profile.md#profile-3-4).
 
 ## The first prototypes
 

@@ -191,7 +191,7 @@ application:
 
 ```python
 class AppAuth(AuthWebStarter):  # email sign-up, sliding month, evict the oldest
-    methods = Slot(AppMethods)  # the email_code method with the mail of the app
+    methods = Slot(AppMethods)  # the email_code method, its mail by the mailer
 ```
 
 ## Pre-mortem

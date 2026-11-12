@@ -15,7 +15,8 @@ proves who signs in, every time.
 
 A factor has the shape of a method of two steps, `start` and `answer`, but
 confirms a profile known, by its uid, instead of finding one. The code by
-mail and the `email_code` method share the sending, `_send_code`.
+mail and the `email_code` method share the mail of the code, built by
+`_build_code_mail`, and the mailer of the auth.
 
 ## Stories
 
@@ -35,7 +36,7 @@ sequenceDiagram
     participant Client
     participant Method as Nickname servicer
     participant Flow as SignIn servicer
-    participant Mail as mail of the app
+    participant Mail as mailer of the auth
     User->>Client: alice, her password
     Client->>Method: Nickname.SignIn(nickname, password, attr_values)
     Method-->>Client: SignInResult.challenge = {attempt_id, email_code: {length: 6}}

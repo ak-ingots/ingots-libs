@@ -7,7 +7,7 @@
 
 - [Ecosystem overview](README.md): repositories and how to work with them
 - [Agent rules](CLAUDE.md): GitHub access, commit approval, ecosystem rules in short
-- [Architecture decisions](docs/adr/README.md): ecosystem-wide ADRs (process, platforms, layout, composition, contract tests, design principles, code layout, moving the dependents, names of gRPC contracts and their paths, the location of contract tests, designing a feature before building it)
+- [Architecture decisions](docs/adr/README.md): ecosystem-wide ADRs (process, platforms, layout, composition, contract tests, design principles, code layout, moving the dependents, names of gRPC contracts and their paths, the location of contract tests, designing a feature before building it, the names of the RPCs, the names of the classes by their kind or role)
 - [Design template](docs/design/template.md): the design of a feature before its code - actors, domain, stories accepted by code, flows, a prototype checked by mypy, threats, slices (ADR 0012)
 - [Extension composition concepts](docs/design/extension-composition/README.md): the dynamic, static and slots prototypes compared for ADR 0004
 - [logo-gen](https://github.com/ak-ingots/logo-gen/blob/main/README.md): the ecosystem logo and its generator (3D ingot scene -> SVG/PNG)
@@ -16,7 +16,7 @@
 - [ingot-grpcio](https://github.com/ak-ingots/ingot-grpcio/blob/main/README.md): an addon integrating grpcio, the gRPC library of Google; the servers, the clients, the errors and the export of the services
 - [ingot-pymongo](https://github.com/ak-ingots/ingot-pymongo/blob/main/README.md): an addon integrating PyMongo, the official driver of MongoDB, on its asynchronous API; the clients of MongoDB servers, as components
 - [ingot-sql](https://github.com/ak-ingots/ingot-sql/blob/main/README.md): an addon for SQL databases - typed tables, typical queries, raw SQL at hand; the skeleton so far
-- [ingot-auth](https://github.com/ak-ingots/ingot-auth/blob/main/README.md): an addon for the sign-up, the sign-in and the sessions of the users of an application, assuming no details of them; the registries of the tags and the attributes of the profiles so far
+- [ingot-auth](https://github.com/ak-ingots/ingot-auth/blob/main/README.md): an addon for the sign-up, the sign-in and the sessions of the users of an application, assuming no details of them; the sign-up and the sign-in by methods in steps, their policies, the sessions, the groups of the users, over gRPC and in MongoDB; on PyPI since 0.1.0, documented on Read the Docs as a subproject of ingots
 
 ## Optional
 

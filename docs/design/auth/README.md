@@ -255,11 +255,8 @@ the order of `Needs`: a slice takes no story before those it needs.
    password of the profile, a sign-in by nickname, a session in the memory
    storage and cache, `authenticate()`, the gRPC `Nickname.SignIn`, an
    asynchronous `_get_caller`; a test signs up, signs in, calls an
-   operation as the user. Built, but
-   [sessions.2.4](sessions.md#sessions-2-4) and
-   [access.2.5](access.md#access-2-5), the callers forgotten on a change,
-   its next pull request; the answers of
-   [methods.2.2](methods/README.md#methods-2-2) moved to slice 3 (the
+   operation as the user. Built, but the answers of
+   [methods.2.2](methods/README.md#methods-2-2), moved to slice 3 (the
    user, 2026-11-11).
 3. [sessions.3.1](sessions.md#sessions-3-1) the sliding strategies, the
    touch, the lazy close; [sessions.1.3](sessions.md#sessions-1-3); the

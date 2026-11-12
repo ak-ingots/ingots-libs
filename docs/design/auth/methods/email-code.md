@@ -10,12 +10,25 @@ never the code: the cache may be read by more than the server. The code is
 good for the attempt, as long as it lives and till the answers refused
 reach their limit.
 
-The core sends no mail: an application extends `BaseAuthEmailCodeMethod`
-with the hook `_send_code(email, code)`, by the mail of its own, and
-declares it as the slot of its methods,
-`email_code = Slot(AppEmailCodeMethod)`.
+The method is whole, as every method of the catalogue (the user,
+2026-11-12: "методы полностью закрывают логику процессинга, поставляют
+какие-то простейшие базовые решения"): it builds its mail, a plain text in
+English, the code in its text only, by `_build_code_mail(email, code)` and
+`_build_denial_mail(email)`, which a subclass overrides to change the
+words, the language, a template, and sends it by the mailer of the auth,
+`BaseAuthMailer`, in the background. The mailer is of the infrastructure,
+a backend the application plugs into its auth as the storage, the cache,
+the transport and the dispatcher; the application declares the method as
+the slot of its methods, `email_code = Slot(AuthEmailCodeMethod)`, nothing
+more. The forming of the mail is the method's, the mailer only delivers a
+mail formed (the user, 2026-11-12): when the mail takes a context of its
+own, the name, the title, the language of the profile, its building
+becomes formatters, entities in slots of the method, each taking a
+dataclass of its context, which an application extends with its fields
+and its formatter, mypy checking them; the code alone needs none yet.
 
-`phone_code` is its twin by SMS, to come.
+`phone_code` is its twin by SMS, to come: its SMS a plain text too, sent by
+a sender of SMS of the auth, as the mail by the mailer.
 
 ## Stories
 
@@ -29,7 +42,7 @@ declares it as the slot of its methods,
 
 | # | Actor | Story | Needs | Status |
 |---|---|---|---|---|
-| <a id="email-code-2-1"></a>2.1 | end user | **I sign in by the code sent to my email.**<br>• The start sends the code only to an email bound to a profile, and asks for it all the same otherwise, no code then good: this step of the method is there, the flow and the service are not.<br>• The method knows the identifier at its start, so it checks the permission there ([methods.4.1](README.md#methods-4-1)). It tells the refusal by its own channel, not to the client: the client gets the same challenge, and the email gets a mail "the sign-in by email is closed to you, ask the support" in place of the code, by a hook next to `_send_code`, `_send_denial` (the user, 2026-11-03). Who owns the email learns it at once; who does not learns nothing.<br>• Example: given alice without `AuthEmailCodePermissions.CAN_SIGN_IN`, when she starts a sign-in by email, then the client shows the form of the code, and her mail says the way is closed; a code typed all the same is refused, `AuthMethodRefusedError`, as none was sent. | [methods.2.3](README.md#methods-2-3), [methods.4.1](README.md#methods-4-1), [methods.4.2](README.md#methods-4-2) | Draft |
+| <a id="email-code-2-1"></a>2.1 | end user | **I sign in by the code sent to my email.**<br>• The start sends the code only to an email bound to a profile, and asks for it all the same otherwise, no code then good: this step of the method is there, the flow and the service are not.<br>• The method knows the identifier at its start, so it checks the permission there ([methods.4.1](README.md#methods-4-1)). It tells the refusal by its own channel, not to the client: the client gets the same challenge, and the email gets a mail "the sign-in by email is closed to you, ask the support" in place of the code, built next to that of the code, `_build_denial_mail` (the user, 2026-11-03). Who owns the email learns it at once; who does not learns nothing.<br>• Example: given alice without `AuthEmailCodePermissions.CAN_SIGN_IN`, when she starts a sign-in by email, then the client shows the form of the code, and her mail says the way is closed; a code typed all the same is refused, `AuthMethodRefusedError`, as none was sent.<br>• Built so far: the method and the flow, the permission checked at the start, the permissions of a uid of nobody got for an email not bound, the same work, the mail of the denial, the mail in the background by the mailer; the service, `EmailCode.StartSignIn`, and the answer, `SignIn.AnswerSignIn`, come with [methods.2.2](README.md#methods-2-2). | [methods.2.3](README.md#methods-2-3), [methods.4.1](README.md#methods-4-1), [methods.4.2](README.md#methods-4-2) | Draft |
 | <a id="email-code-2-2"></a>2.2 | end user | **The code did not come: I ask for another, in the same attempt.**<br>• A new code replaces the old one in the state of the attempt; the resends are limited, as the answers are. | [2.1](#email-code-2-1) | Draft |
 
 ### 3. Binding
@@ -49,17 +62,17 @@ sequenceDiagram
     participant Client
     participant Server as EmailCode servicer
     participant Flow as SignIn servicer
-    participant Mail as mail of the app
+    participant Mail as mailer of the auth
     Note over Client: the form of the email
     User->>Client: alice@example.com
     Client->>Server: EmailCode.StartSignIn(email, attr_values)
     Server-->>Client: SignInResult.challenge = {attempt_id, email: {length: 6}}
     Note over Client: the form of the code, of 6 digits, at once
     alt the email is bound, the profile may sign in by email
-        Server-)Mail: _send_code(email, code), in the background
+        Server-)Mail: the mail of the code, in the background
         Mail-)User: the code, 6 digits, a moment later
     else bound, the profile may not
-        Server-)Mail: _send_denial(email), in the background
+        Server-)Mail: the mail of the denial, in the background
         Mail-)User: "the sign-in by email is closed to you, ask the support"
     else not bound
         Note over Server: no mail, the same reply in the same time
@@ -105,10 +118,10 @@ sequenceDiagram
         Method->>Perms: get(uid)
         alt has not CAN_SIGN_IN of the method
             Method->>Method: the digest of a code never sent
-            Method--)Method: _send_denial(email), in the background
+            Method--)Method: AuthSendDenialOperation, by the dispatcher
         else has
             Method->>Method: a code, its digest in the state
-            Method--)Method: _send_code(email, code), in the background
+            Method--)Method: AuthSendCodeOperation, by the dispatcher
         end
     end
     Method-->>SignIn: AuthChallenge(challenge, state), the same in all three
@@ -154,13 +167,18 @@ sequenceDiagram
 ### The method of the application: Implemented
 
 ```python
-class AppEmailCodeMethod(BaseAuthEmailCodeMethod):
-    @t.override
-    async def _send_code(self, email: str, code: str) -> None:
-        await self.project.mail.send(email, f"Your code: {code}")
-
 class AppMethods(AuthMethodsUnit):
-    email_code = Slot(AppEmailCodeMethod)
+    email_code = Slot(AuthEmailCodeMethod)  # whole, nothing to write
+
+class AppAuthUnit(AuthUnit):
+    dispatcher = Slot(AuthMemoryDispatcher)
+    mailer = Slot(AppMailer)  # a backend that delivers
+
+# the words of its own, if the application wants them
+class AppEmailCodeMethod(AuthEmailCodeMethod):
+    @t.override
+    def _build_code_mail(self, email: str, code: str) -> AuthMail:
+        return AuthMail(to=email, subject="Votre code", text=f"Code : {code}")
 ```
 
 ### Sign-up, Python: Implemented

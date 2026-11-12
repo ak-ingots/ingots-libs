@@ -23,7 +23,7 @@ declares it as the slot of its methods,
 
 | # | Actor | Story | Needs | Status |
 |---|---|---|---|---|
-| <a id="email-code-1-1"></a>1.1 | end user | **I sign up with my email, by the code sent to it.**<br>• The email is checked by the preset of the policies of the method, its slot `preset_sign_up_email`, empty unless an application binds policies to it in its subclass.<br>• An email taken is told only after its code, at the end, `AuthIdentityConflictError`: who does not own it learns nothing ([methods.4.2](README.md#methods-4-2)).<br>• Example: given alice@example.com free, when she starts, then the reply is a challenge of 6 digits and the mail brings the code; when she answers it, then a profile is created.<br>• Today the code is sent before the reply; in the background with [methods.2.3](README.md#methods-2-3). | [methods.3.1](README.md#methods-3-1) | Implemented |
+| <a id="email-code-1-1"></a>1.1 | end user | **I sign up with my email, by the code sent to it.**<br>• The email is checked by the group of the policies of the method, its slot `policies_sign_up_email`, empty unless an application gives policies to it in its subclass.<br>• An email taken is told only after its code, at the end, `AuthIdentityConflictError`: who does not own it learns nothing ([methods.4.2](README.md#methods-4-2)).<br>• Example: given alice@example.com free, when she starts, then the reply is a challenge of 6 digits and the mail brings the code; when she answers it, then a profile is created.<br>• Today the code is sent before the reply; in the background with [methods.2.3](README.md#methods-2-3). | [methods.3.1](README.md#methods-3-1) | Implemented |
 
 ### 2. Signing in
 
@@ -52,7 +52,7 @@ sequenceDiagram
     participant Mail as mail of the app
     Note over Client: the form of the email
     User->>Client: alice@example.com
-    Client->>Server: EmailCode.StartSignIn(email, values)
+    Client->>Server: EmailCode.StartSignIn(email, attr_values)
     Server-->>Client: SignInResult.challenge = {attempt_id, email: {length: 6}}
     Note over Client: the form of the code, of 6 digits, at once
     alt the email is bound, the profile may sign in by email
@@ -92,7 +92,7 @@ sequenceDiagram
     participant Perms as permissions strategy
     participant Cache as cache
     participant Storage as storage
-    Servicer->>SignIn: start(email, values + transport values)
+    Servicer->>SignIn: start(email, attr_values + those of the transport)
     Note over SignIn: the timing strategy starts its clock
     SignIn->>Method: start_sign_in(email)
     Method->>Storage: identities.find_uid(email, email)
@@ -153,23 +153,21 @@ sequenceDiagram
 
 ### The method of the application: Implemented
 
-Under the names of today, `BaseAuthEmailMethod` and the slot `email`:
-
 ```python
-class AppEmailMethod(BaseAuthEmailMethod):
+class AppEmailCodeMethod(BaseAuthEmailCodeMethod):
     @t.override
     async def _send_code(self, email: str, code: str) -> None:
         await self.project.mail.send(email, f"Your code: {code}")
 
-class AppMethods(AuthMethods):
-    email = Slot(AppEmailMethod)
+class AppMethods(AuthMethodsUnit):
+    email_code = Slot(AppEmailCodeMethod)
 ```
 
 ### Sign-up, Python: Implemented
 
 ```python
 start = AuthStartSignUpParameters(
-    method="email", parameters=AuthEmailStart(email="alice@example.com")
+    method="email_code", parameters=AuthEmailCodeStart(email="alice@example.com")
 )
 challenge = await project.operations.runner.run(
     project.auth.sign_up.op_start, start, metadata
@@ -184,17 +182,17 @@ assert isinstance(result, AuthSignedUp)
 
 | Field | Of | What |
 |---|---|---|
-| `method` | `AuthStartSignUpParameters` | `email`, the path of the slot of the method, `email_code` to be. |
-| `parameters` | `AuthStartSignUpParameters` | `AuthEmailStart(email)`: the identifier once normalized, checked by `preset_sign_up_email`. |
-| `values` | `AuthStartSignUpParameters` | The values of the attributes of the session whose source is the client, by their ids ([sessions.1.1](../sessions.md#sessions-1-1)), kept with the attempt till the end. |
+| `method` | `AuthStartSignUpParameters` | `email_code`, the path of the slot of the method. |
+| `parameters` | `AuthStartSignUpParameters` | `AuthEmailCodeStart(email)`: the identifier once normalized, checked by `policies_sign_up_email`. |
+| `attr_values` | `AuthStartSignUpParameters` | The values of the attributes of the session whose source is the client, by their ids ([sessions.1.1](../sessions.md#sessions-1-1)), kept with the attempt till the end. |
 | `attempt_id` | `AuthSignUpChallenge` | The attempt to answer to: 32 random bytes, URL-safe. |
-| `challenge` | `AuthSignUpChallenge` | `AuthEmailChallenge(length)`: the code has `length` digits. |
+| `challenge` | `AuthSignUpChallenge` | `AuthEmailCodeChallenge(length)`: the code has `length` digits. |
 | `attempt_id`, `answer` | `AuthAnswerSignUpParameters` | The attempt, and the code as typed, a string. |
 | `uid` | `AuthSignedUp` | The new profile. |
 
 Errors of the start: `AuthMethodNotFoundError`; `AuthItemNotFoundError`,
-`AuthItemInvalidError`, a value of an attribute; `AuthMethodInvalidError`, a
-policy of the email broken. Of the answer: `AuthAttemptNotFoundError`, none
+`AuthItemInvalidError`, a value of an attribute; `AuthMethodInvalidError`,
+policies of the email broken. Of the answer: `AuthAttemptNotFoundError`, none
 waits under the id, expired, over, or of another flow;
 `AuthMethodRefusedError`, a wrong code, the attempt kept under
 `AUTH_ATTEMPT_MAX_FAILURES`; `AuthIdentityConflictError`, the email bound in

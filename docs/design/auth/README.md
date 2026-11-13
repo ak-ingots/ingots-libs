@@ -263,7 +263,7 @@ the order of `Needs`: a slice takes no story before those it needs.
    sign-in by a code by mail, [email-code.2.1](methods/email-code.md#email-code-2-1),
    its code sent in the background, [methods.2.3](methods/README.md#methods-2-3),
    its answer by `SignIn.AnswerSignIn`, with the challenge
-   ([methods.2.2](methods/README.md#methods-2-2)).
+   ([methods.2.2](methods/README.md#methods-2-2)). Built.
 4. [sign-out.1.1](sign-out.md#sign-out-1-1),
    [sessions.3.2](sessions.md#sessions-3-2),
    [sign-out.1.2](sign-out.md#sign-out-1-2),

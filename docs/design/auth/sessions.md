@@ -42,7 +42,7 @@ stateDiagram-v2
 |---|---|---|---|---|
 | <a id="sessions-1-1"></a>1.1 | application | **I register the attributes a session keeps, each with its type and its source, and the presets a client gives them by; the client learns them from the metadata and gives their values with a sign-up.**<br>• An attribute keeps its type and its source once given: renaming keeps them, nothing changes them.<br>• The metadata gives a client the attributes whose source is the client, and the presets with their bindings; the others are not for it.<br>• A sign-up checks the values the client gives: an attribute unknown or not the client's, `AuthItemNotFoundError`; a value of another type, `AuthItemInvalidError`. They are kept in the record of the sign-up, as no session opens then.<br>• The values kept with a session come with it ([1.2](#sessions-1-2)). | — | Implemented |
 | <a id="sessions-1-2"></a>1.2 | client | **A sign-in gives me a token, once, that I send with each call.**<br>• The token is random, 256 bits, given once at the sign-in; the server keeps its hash, never the token: sha256, the token being random, a slow hash buying nothing (the user, 2026-11-05: "а там посмотрим").<br>• The session has an id of its own, public, shown in the list of the sessions ([3.2](#sessions-3-2)); the id never authenticates.<br>• The session keeps the values of its attributes, those of the client checked as on a sign-up ([1.1](#sessions-1-1)). | [1.1](#sessions-1-1), [methods.4.1](methods/README.md#methods-4-1) | Implemented |
-| <a id="sessions-1-3"></a>1.3 | transport | **I give the attributes of the transport, the IP, and the client cannot give them.**<br>• The values of the client are checked by the source of the attributes; the transport ones come from the servicer only ([Q1](#sessions-q1)). | [1.2](#sessions-1-2), [methods.2.2](methods/README.md#methods-2-2) | Draft |
+| <a id="sessions-1-3"></a>1.3 | transport | **I give the attributes of the transport, the IP, and the client cannot give them.**<br>• The values of the client are checked by the source of the attributes; the transport ones come from the servicer only ([Q1](#sessions-q1)).<br>• The start of a flow takes them by the names of their attributes, `transport_attr_values`, as a transport knows no ids, of an environment: the registry tells what is kept, under the ids, with the values of the client; a value of no attribute is dropped, the application keeping no IP until it registers `ip`; one of an attribute of another source or type is dropped too, with a warning, a mistake of the registry, not of the call (the user, 2026-11-13).<br>• A transport binds each name to the function reading its value from the call, its own headers (the user, 2026-11-13): over gRPC the hook `_get_transport_attr_values()` of `BaseAuthGrpcMethodServicer`, `ip` the IP of the peer; behind a proxy the application binds it to the header of its proxy; a strategy in a slot later, as for the token.<br>• They are of the start, kept by the attempt to the end of the flow.<br>• Example: given `ip` registered of the transport, when alice signs in by her nickname over gRPC, then her session keeps the IP of the call, which no `AttrValue` of the client could give. | [1.2](#sessions-1-2), [methods.2.2](methods/README.md#methods-2-2) | Implemented |
 
 ### 2. Working in a session
 
@@ -171,6 +171,17 @@ class BaseAuthGrpcServicer(GrpcServicer):
         return await self.project.auth.sessions.authenticate(token)
 ```
 
+A servicer of a method gives the values of the attributes of the
+transport (story [1.3](#sessions-1-3)), each name bound to its reader:
+
+```python
+class AppTransportAttrs(BaseAuthGrpcMethodServicer):
+    @t.override
+    def _get_transport_attr_values(self, context: Context) -> dict[str, AuthAttrValue | None]:
+        # ip of the peer by default; behind a proxy, its header
+        return super()._get_transport_attr_values(context) | {"ip": get_forwarded_ip(context)}
+```
+
 The client (stories [2.1](#sessions-2-1), [3.2](#sessions-3-2)):
 
 ```python
@@ -236,8 +247,9 @@ run checks the token, the expiry and the permissions.
 1. <a id="sessions-q1"></a>Answered: a field of the parameters of the
    start the client cannot reach, the servicer setting it,
    `transport_attr_values`, not the metadata of ingots (the user,
-   2026-11-12: "точно А"). How a servicer finds the attribute of the
-   registry a value of the transport is of, the pull request of
-   [1.3](#sessions-1-3) decides.
+   2026-11-12: "точно А"). A value of the transport is of the attribute of
+   its name, the registry keeping it under its id, the transport binding
+   the name to the function reading it from the call (the user,
+   2026-11-13, [1.3](#sessions-1-3)).
 2. <a id="sessions-q2"></a>Answered: the idle limit precise to the touch
    interval is fine (the user, 2026-11-12).

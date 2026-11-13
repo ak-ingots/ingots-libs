@@ -42,7 +42,7 @@ a sender of SMS of the auth, as the mail by the mailer.
 
 | # | Actor | Story | Needs | Status |
 |---|---|---|---|---|
-| <a id="email-code-2-1"></a>2.1 | end user | **I sign in by the code sent to my email.**<br>• The start sends the code only to an email bound to a profile, and asks for it all the same otherwise, no code then good: this step of the method is there, the flow and the service are not.<br>• The method knows the identifier at its start, so it checks the permission there ([methods.4.1](README.md#methods-4-1)). It tells the refusal by its own channel, not to the client: the client gets the same challenge, and the email gets a mail "the sign-in by email is closed to you, ask the support" in place of the code, built next to that of the code, `_build_denial_mail` (the user, 2026-11-03). Who owns the email learns it at once; who does not learns nothing.<br>• Example: given alice without `AuthEmailCodePermissions.CAN_SIGN_IN`, when she starts a sign-in by email, then the client shows the form of the code, and her mail says the way is closed; a code typed all the same is refused, `AuthMethodRefusedError`, as none was sent.<br>• Built so far: the method and the flow, the permission checked at the start, the permissions of a uid of nobody got for an email not bound, the same work, the mail of the denial, the mail in the background by the mailer; the service, `EmailCode.StartSignIn`, and the answer, `SignIn.AnswerSignIn`, come with [methods.2.2](README.md#methods-2-2). | [methods.2.3](README.md#methods-2-3), [methods.4.1](README.md#methods-4-1), [methods.4.2](README.md#methods-4-2) | Draft |
+| <a id="email-code-2-1"></a>2.1 | end user | **I sign in by the code sent to my email.**<br>• The start sends the code only to an email bound to a profile, and asks for it all the same otherwise, no code then good: this step of the method is there, the flow and the service are not.<br>• The method knows the identifier at its start, so it checks the permission there ([methods.4.1](README.md#methods-4-1)). It tells the refusal by its own channel, not to the client: the client gets the same challenge, and the email gets a mail "the sign-in by email is closed to you, ask the support" in place of the code, built next to that of the code, `_build_denial_mail` (the user, 2026-11-03). Who owns the email learns it at once; who does not learns nothing.<br>• Example: given alice without `AuthEmailCodePermissions.CAN_SIGN_IN`, when she starts a sign-in by email, then the client shows the form of the code, and her mail says the way is closed; a code typed all the same is refused, `AuthMethodRefusedError`, as none was sent.<br>• Built: the method and the flow, the permission checked at the start, the permissions of a uid of nobody got for an email not bound, the same work, the mail of the denial, the mail in the background by the mailer; the service, `EmailCode.StartSignIn`, and the answer, `SignIn.AnswerSignIn` ([methods.2.2](README.md#methods-2-2)). | [methods.2.3](README.md#methods-2-3), [methods.4.1](README.md#methods-4-1), [methods.4.2](README.md#methods-4-2) | Implemented |
 | <a id="email-code-2-2"></a>2.2 | end user | **The code did not come: I ask for another, in the same attempt.**<br>• A new code replaces the old one in the state of the attempt; the resends are limited, as the answers are. | [2.1](#email-code-2-1) | Draft |
 
 ### 3. Binding
@@ -66,7 +66,7 @@ sequenceDiagram
     Note over Client: the form of the email
     User->>Client: alice@example.com
     Client->>Server: EmailCode.StartSignIn(email, attr_values)
-    Server-->>Client: SignInResult.challenge = {attempt_id, email: {length: 6}}
+    Server-->>Client: SignInResult.challenge = {attempt_id, code: {length: 6}}
     Note over Client: the form of the code, of 6 digits, at once
     alt the email is bound, the profile may sign in by email
         Server-)Mail: the mail of the code, in the background
@@ -216,22 +216,24 @@ waits under the id, expired, over, or of another flow;
 `AUTH_ATTEMPT_MAX_FAILURES`; `AuthIdentityConflictError`, the email bound in
 between.
 
-### The service, gRPC: Draft
+### The service, gRPC: Implemented
 
-The starts of the method; the answers by the services of the flows,
-`SignUp.AnswerSignUp`, `SignIn.AnswerSignIn`, `Bind.AnswerBind` ([methods.2.2](README.md#methods-2-2)):
+The starts of the method, `AuthGrpcEmailCodeBinding`; the answers by the
+services of the flows, `SignUp.AnswerSignUp`, `SignIn.AnswerSignIn`,
+`AuthGrpcFlowsBinding`, `Bind.AnswerBind` with the bind
+([methods.2.2](README.md#methods-2-2)):
 
 ```proto
 // ingot_auth/methods/email_code/v1/email_code.proto
 service EmailCode {
   rpc StartSignUp(StartSignUpRequest) returns (StartSignUpResponse);
   rpc StartSignIn(StartSignInRequest) returns (StartSignInResponse);
-  rpc StartBind(StartBindRequest) returns (StartBindResponse);
+  // StartBind with the bind
 }
 
 message StartSignInRequest {
   string email = 1;
-  // the values of the attributes of the session, by their ids
+  repeated ingot_auth.sessions.attrs.v1.AttrValue attr_values = 2;
 }
 
 message StartSignInResponse {

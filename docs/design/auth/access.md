@@ -38,15 +38,18 @@ What the auth adds, the users, the groups, the permissions (as
   of its MRO adding its own by `super()`: an addon, a contrib, the
   application, each grants what it needs to the same group, and the slots
   of ingots make the application declare the class that joins them.
-- **`signed_in`**, a group of the core, has every signed-in caller as a
+- **`grp_signed_in`**, a group of the core, has every signed-in caller as a
   member, no membership stored: it grants what every signed-in caller may
   do, a session of its own, the methods open, and what the others add to
   it ([1.1](#access-1-1)).
+- **`grp_anonymous`**, a group of the core, has every caller that tells no
+  one as a member, none stored: it grants what anyone may, the anonymous
+  caller of the project having it ([1.1](#access-1-1)).
 - **A membership** binds a user to a group, many to many: a user is a
   member of any number of groups ([Q4](#access-q4)). The memberships are
   all the storage keeps of the access.
 - **The permissions of a signed-in caller** are the union of what its
-  groups grant, `signed_in` included, computed from its uid
+  groups grant, `grp_signed_in` included, computed from its uid
   ([1.1](#access-1-1)). They are of the caller, formed after the sign-in,
   not of the session, which stays a session ([Q3](#access-q3)).
 - **The root** is the CLI: an operator joins the first administrator to
@@ -61,7 +64,7 @@ The permissions on an object, of a profile on a record, are parked in
 
 | # | Actor | Story | Needs | Status |
 |---|---|---|---|---|
-| <a id="access-1-1"></a>1.1 | application | **I get the permissions of a signed-in caller from its groups, `signed_in` with the others.**<br>• The permissions are of the strategy of the permissions, the slot `permissions` of the access, from the uid: `AuthGroupsGrants` of the core (`AuthGroupsPermissions` is the domain of the permissions of the groups), the union of what the groups of the user grant, `signed_in` first; a membership of a group no source has any more grants nothing. An application binds no other, nor subclasses it.<br>• They are of the caller, `AuthCaller(uid, session_id, permissions)`, formed after the sign-in, and again on a miss of the cache; the session holds none ([Q3](#access-q3)).<br>• `signed_in` of the core, `AuthSignedInGroup`, grants (the user, 2026-11-05): those of a session of its own, `CAN_SIGN_OUT`, `CAN_LIST_OWN`, `CAN_REVOKE_OWN`; those of the methods, `CAN_SIGN_IN` and `CAN_BIND`, by their toggles, the getters of the method ([methods.1.3](methods/README.md#methods-1-3)). What the application and its addons grant every signed-in caller, they add to it by its hook, no ClassVar of a list.<br>• The caller is kept in the cache next to its session, by the same hash of the token, apart from it ([sessions.2.4](sessions.md#sessions-2-4)).<br>• Built so far: the strategy, `signed_in` granting the `CAN_SIGN_IN` of each method open, the caller; the permissions of a session of its own come with the sign-out ([sign-out.1.1](sign-out.md#sign-out-1-1)), `CAN_BIND` with the bind.<br>• Example: given the shop granting `ShopPermissions.CAN_BUY` to `signed_in`, and alice a member of `editors`, which grants `ArticlesPermissions.CAN_PUBLISH`, when alice signs in, then her caller may buy, as may any other, and publish, as bob, not an editor, may not. | — | Implemented |
+| <a id="access-1-1"></a>1.1 | application | **I get the permissions of a signed-in caller from its groups, `grp_signed_in` with the others.**<br>• The permissions are of the strategy of the permissions, the slot `permissions` of the access, from the uid: `AuthGroupsGrants` of the core (`AuthGroupsPermissions` is the domain of the permissions of the groups), the union of what the groups of the user grant, `grp_signed_in` first; a membership of a group no source has any more grants nothing. An application binds no other, nor subclasses it.<br>• They are of the caller, `AuthCaller(uid, session_id, permissions)`, formed after the sign-in, and again on a miss of the cache; the session holds none ([Q3](#access-q3)).<br>• `grp_signed_in` of the core, `AuthSignedInGroup`, grants (the user, 2026-11-05): those of a session of its own, `CAN_SIGN_OUT`, `CAN_LIST_OWN`, `CAN_REVOKE_OWN`; those of the methods, `CAN_SIGN_IN` and `CAN_BIND`, by their toggles, the getters of the method ([methods.1.3](methods/README.md#methods-1-3)). What the application and its addons grant every signed-in caller, they add to it by its hook, no ClassVar of a list.<br>• The caller is kept in the cache next to its session, by the same hash of the token, apart from it ([sessions.2.4](sessions.md#sessions-2-4)).<br>• The anonymous caller has what the group `grp_anonymous` of the core grants, `AuthAnonymousGroup`, of every caller that tells no one, none stored, as `grp_signed_in` is of every signed-in user (the user, 2026-11-13: the groups are in the code already): what anyone may of the auth, as its units tell it, `get_anonymous_permissions()` of the sign-up, the sign-in, the methods and the metadata; an application grants anyone more, or less, by its class in the slot. `AuthCallersProvider` of `AuthProject` gives it to the anonymous caller of the project, `operations.callers.get_anonymous()` of ingots 0.33.2.<br>• A signed-in caller has the permissions of its groups alone, not what anyone may, `grp_anonymous` not among them (the user, 2026-11-13): a user its groups do not let in uses what is open to anyone until it signs in, and is refused once it has; an operation of the groups to fix, or a ban to keep.<br>• Built so far: the strategy, `grp_signed_in` granting the `CAN_SIGN_IN` of each method open, the caller; the permissions of a session of its own come with the sign-out ([sign-out.1.1](sign-out.md#sign-out-1-1)), `CAN_BIND` with the bind.<br>• Example: given the shop granting `ShopPermissions.CAN_BUY` to `grp_signed_in`, and alice a member of `editors`, which grants `ArticlesPermissions.CAN_PUBLISH`, when alice signs in, then her caller may buy, as may any other, and publish, as bob, not an editor, may not. | — | Implemented |
 | <a id="access-1-2"></a>1.2 | operator | **I switch a method off for one user or a cohort, the sign-in by nickname of a leaked account, the bind for guests.**<br>• By the permissions of the method, `CAN_SIGN_IN` and `CAN_BIND` ([methods.1.3](methods/README.md#methods-1-3)), taken from the profile.<br>• Every signed-in caller has them ([1.1](#access-1-1)): taking them off one needs a group that denies or a default group to leave ([Q2](#access-q2)). | [1.1](#access-1-1) | Draft |
 
 ### 2. The groups
@@ -71,9 +74,9 @@ gRPC services of `ingot_auth.access.*.v1` and by the CLI, `auth access`.
 
 | # | Actor | Story | Needs | Status |
 |---|---|---|---|---|
-| <a id="access-2-1"></a>2.1 | application | **I declare the groups my application is written for, each with what it grants, in the code, reviewed with it, joined with what my addons grant to the same groups.**<br>• The sub-unit `auth.access.groups`, `AuthGroups`, its slots the groups, each an `AuthGroup`: the name of the slot is the name of the group; mypy sees every flag a group grants.<br>• A group grants by its hook, `_get_permissions()`, each class adding its own to `super()`; `get_permissions()`, final, gives the union. Two bases holding unrelated classes in a slot of a group make the application declare the class that extends them, refused at the creation of the class otherwise, by the slots of ingots: no grant is lost silently.<br>• The code is one source of the groups, the first (the user, 2026-11-09): the unit gives the groups by its API, `get(name)`, `get_all()`, whatever their source, so that another, groups an operator creates at run time, may join it later behind the same API.<br>• A name is lowercase letters, digits and `_`, a name of a slot; it never changes, as the scripts and the memberships name it.<br>• A group removed from the code leaves its memberships, which grant nothing; a command that prunes them comes when one asks for it.<br>• No group is active or not: a group off is a group removed ([Q5](#access-q5)).<br>• Example: given `AppGroups` with `admins` and `editors`, then `get_all()` gives the two, `signed_in` with them once [1.1](#access-1-1) is built, `get("editors")` the group, `get("guests")` raises `AuthGroupNotFoundError`. | — | Implemented |
+| <a id="access-2-1"></a>2.1 | application | **I declare the groups my application is written for, each with what it grants, in the code, reviewed with it, joined with what my addons grant to the same groups.**<br>• The sub-unit `auth.access.groups`, `AuthGroups`, its slots the groups, each an `AuthGroup`: the name of the slot is the name of the group; mypy sees every flag a group grants.<br>• A group grants by its hook, `_get_permissions()`, each class adding its own to `super()`; `get_permissions()`, final, gives the union. Two bases holding unrelated classes in a slot of a group make the application declare the class that extends them, refused at the creation of the class otherwise, by the slots of ingots: no grant is lost silently.<br>• The code is one source of the groups, the first (the user, 2026-11-09): the unit gives the groups by its API, `get(name)`, `get_all()`, whatever their source, so that another, groups an operator creates at run time, may join it later behind the same API.<br>• A name is lowercase letters, digits and `_`, a name of a slot; it never changes, as the scripts and the memberships name it.<br>• The slots of the groups of the core take the prefix `grp_`, as those of the operations take `op_` and of the commands `cmd_`, no domain in it: `grp_anonymous`, `grp_signed_in` (the user, 2026-11-13). The name of a group stays that of its slot for now, the prefix in it; how a name is told apart from its slot, and the groups found in the units of their domains, come later.<br>• A group removed from the code leaves its memberships, which grant nothing; a command that prunes them comes when one asks for it.<br>• No group is active or not: a group off is a group removed ([Q5](#access-q5)).<br>• Example: given `AppGroups` with `admins` and `editors`, then `get_all()` gives the two, `grp_signed_in` with them once [1.1](#access-1-1) is built, `get("editors")` the group, `get("guests")` raises `AuthGroupNotFoundError`. | — | Implemented |
 | <a id="access-2-2"></a>2.2 | operator | **I list the groups and what each grants, to know whom to add where.**<br>• `Groups.ListGroups`, `auth access groups list`: the name and the masks of each, read only; the domain of permissions `auth.access.groups`, `CAN_READ`.<br>• A grant to a user directly is not here ([Q6](#access-q6)): a group of one if need be. | [2.1](#access-2-1) | Implemented |
-| <a id="access-2-3"></a>2.3 | operator | **I add a user to a group and remove it, and read the groups of a user and the members of a group.**<br>• `Members.AddMember(group, uid)`, `RemoveMember`, `ListMembers(group)`, `ListMemberGroups(uid)`, `auth access members add admins <uid>`; the domain `auth.access.members`.<br>• Adding a member again keeps one membership, removing one not there is no error: a script runs them twice safely. The groups of a user list those no source has any more too, granting nothing, to be found and pruned.<br>• A group no source has is refused, `AuthGroupNotFoundError`, and so will `signed_in` be once [1.1](#access-1-1) brings it, of every signed-in caller already; a uid of no profile, `AuthProfileNotFoundError`.<br>• The membership is of the access, not of the profile record ([Q7](#access-q7)). | [2.1](#access-2-1) | Implemented |
+| <a id="access-2-3"></a>2.3 | operator | **I add a user to a group and remove it, and read the groups of a user and the members of a group.**<br>• `Members.AddMember(group, uid)`, `RemoveMember`, `ListMembers(group)`, `ListMemberGroups(uid)`, `auth access members add admins <uid>`; the domain `auth.access.members`.<br>• Adding a member again keeps one membership, removing one not there is no error: a script runs them twice safely. The groups of a user list those no source has any more too, granting nothing, to be found and pruned.<br>• A group no source has is refused, `AuthGroupNotFoundError`, and so will `grp_signed_in` be once [1.1](#access-1-1) brings it, of every signed-in caller already; a uid of no profile, `AuthProfileNotFoundError`.<br>• The membership is of the access, not of the profile record ([Q7](#access-q7)). | [2.1](#access-2-1) | Implemented |
 | <a id="access-2-4"></a>2.4 | operator | **I make the first administrator from the command line, before any caller may grant anything.**<br>• The CLI runs as the root: `auth access members add admins <uid>`, `admins` declared by the application, granting the permissions of the members.<br>• Example: given `admins` granting `AuthMembersPermissions.CAN_ADD`, and alice signed up, when the operator runs the command, then alice, signed in, adds the members over gRPC. | [2.1](#access-2-1), [2.3](#access-2-3) | Implemented |
 | <a id="access-2-5"></a>2.5 | end user | **A group I join, or a new grant of my group, shows on my next request, without signing in again.**<br>• As [sessions.2.4](sessions.md#sessions-2-4): a change of the memberships of a user forgets its callers in the cache.<br>• The grants of the code change with a deploy only: the key of a caller in the cache holds a digest of the groups, computed once, so a deploy that changes them finds none of the old callers ([Q8](#access-q8)): `get_digest()` of the groups, from their names and masks. | [2.1](#access-2-1), [2.3](#access-2-3), [sessions.2.4](sessions.md#sessions-2-4) | Implemented |
 
@@ -90,7 +93,8 @@ Where each piece lives:
 | What | Where | Shape |
 |---|---|---|
 | A group and what it grants | the code: a slot of `auth.access.groups` | the name of the slot; `get_permissions()`, the union of the hooks of its MRO |
-| `signed_in` | the code: a slot of `AuthGroups`, of the core | every signed-in caller a member, none stored |
+| `grp_signed_in` | the code: a slot of `AuthGroups`, of the core | every signed-in caller a member, none stored |
+| `grp_anonymous` | the code: a slot of `AuthGroups`, of the core | every caller that tells no one a member, none stored |
 | A membership | the storage: `storage.access.members` | `(group, uid)`, unique, found by the group and by the uid |
 | The permissions of a caller | the cache: a caller by the hash of the token and the digest of the groups | `AuthCaller(uid, session_id, permissions)`, computed on a miss |
 
@@ -113,13 +117,13 @@ class ShopManagersGroup(AuthGroup):
         )
 
 class ShopGroups(AuthGroups):
-    signed_in = Slot(ShopSignedInGroup)
+    grp_signed_in = Slot(ShopSignedInGroup)
     shop_managers = Slot(ShopManagersGroup)
 ```
 
 The application (stories [1.1](#access-1-1), [2.1](#access-2-1)) takes the
 groups of its addons, the shop and the articles here, and joins what they
-grant to `signed_in`: both hold it, so it declares the class extending them,
+grant to `grp_signed_in`: both hold it, so it declares the class extending them,
 as the slots require:
 
 ```python
@@ -134,7 +138,7 @@ class AdminsGroup(AuthGroup):
         )
 
 class AppGroups(ShopGroups, ArticlesGroups):
-    signed_in = Slot(AppSignedInGroup)
+    grp_signed_in = Slot(AppSignedInGroup)
     admins = Slot(AdminsGroup)
     # shop_managers and editors come from the addons as they are
 
@@ -165,7 +169,7 @@ giving `Permissions`. The storage `storage.access.members`, in memory first.
    same in every environment (the user, 2026-11-08); in the code, the name
    of its slot (the user, 2026-11-09).
 2. <a id="access-q2"></a>Parked. Taking `CAN_SIGN_IN` of a method off one
-   user: a group that denies, its bits taken off the rest, or `signed_in`
+   user: a group that denies, its bits taken off the rest, or `grp_signed_in`
    made a group of stored memberships, every sign-up joining it, left to
    switch off?
    Holds [1.2](#access-1-2), later.

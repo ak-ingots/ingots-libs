@@ -39,7 +39,7 @@ sequenceDiagram
     participant Mail as mailer of the auth
     User->>Client: alice, her password
     Client->>Method: Nickname.SignIn(nickname, password, attr_values)
-    Method-->>Client: SignInResult.challenge = {attempt_id, email_code: {length: 6}}
+    Method-->>Client: SignInResult.challenge = {attempt_id, code: {length: 6}}
     Note over Client: the form of the code, at once
     Method-)Mail: the code, in the background
     Mail-)User: the code

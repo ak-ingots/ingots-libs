@@ -2,7 +2,7 @@
 # pr <repo> <message> [branch]: commits the change of a repository with a
 # message file, everything but profile.txt when nothing is staged, on a new
 # branch when on main, after its check; pushes it and opens its pull request,
-# the message without its trailer as the description.
+# the message without its trailer as the description, unless it is open.
 source "$(dirname "$0")/lib.sh"
 msg=$(realpath "$2")
 enter "$1"
@@ -23,7 +23,11 @@ log=$(mktemp)
 make "$target" > "$log" 2>&1 || { tail -30 "$log"; die "make $target failed: $log"; }
 # -n: the hooks would only repeat the checks above
 git -c user.email="$(git -C "$meta" config user.email)" commit -q -n -F "$msg"
-net git push -q -u origin "$branch"
+net git push -q -u origin "$branch" \
+    2> >(grep -vE '^remote: *($|Create a pull request|https://github.com/.*/pull/new/)' >&2)
+if net gh pr view "$branch" --json url --jq .url 2> /dev/null; then
+    exit  # a commit more of an open pull request
+fi
 body=$(mktemp)
 {
     sed '1,2d; /^Co-Authored-By:/d' "$msg" \

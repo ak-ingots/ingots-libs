@@ -62,8 +62,8 @@ not extend to the next. Never merge a pull request: the user does
   telling how: `pr` checks, commits, pushes and opens the pull request,
   `ci` waits for the checks or a release and prints a line (run it in the
   background), `merged` pulls `main` and deletes the branch, `release` and
-  `tag` make a release; `.claude/settings.json` allows those that change
-  nothing remote, `ci`, `merged` and `release`. `make hooks`
+  `tag` make a release; `.claude/settings.json` allows all but `tag`,
+  which publishes, to TestPyPI unchecked. `make hooks`
   (run by `make clone`) points git at `hooks/` in every repository:
   pre-commit runs `make lint test` (`check-prototypes` here), commit-msg
   keeps the message within 72 columns; `git commit -n` skips them for a

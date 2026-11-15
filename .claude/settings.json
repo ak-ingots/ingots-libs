@@ -1,6 +1,7 @@
 {
   "permissions": {
     "allow": [
+      "Bash(scripts/pr *)",
       "Bash(scripts/ci *)",
       "Bash(scripts/merged)",
       "Bash(scripts/merged *)",

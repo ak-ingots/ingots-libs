@@ -227,7 +227,7 @@ Six months on, the auth failed. Why:
 
 Of this file: none now.
 
-Those the next slice, 2, needs answered: none now.
+Those the next slice, 4, needs answered: none now.
 
 ## Slices
 
@@ -271,7 +271,13 @@ the order of `Needs`: a slice takes no story before those it needs.
    [profile.1.2](profile.md#profile-1-2),
    [profile.1.3](profile.md#profile-1-3): sign-out, the own sessions listed
    and revoked, the record of the sign-ins, the values of a profile, the
-   profile of the caller and its hash; their gRPC services.
+   profile of the caller and its hash; their gRPC services. Accepted (the
+   user, 2026-11-15), the prototype [own](own/) running them: the sign-out
+   open to any caller; the own sessions and the profile of the caller by
+   the flags `auth.grp_signed_in` grants; the place of a session by a
+   strategy deriving its attributes; the record by the command line and
+   over gRPC; the hash told by the servicers of a signed-in caller. Five
+   pull requests, a story or two each, in this order, then 0.3.0.
 5. [sign-out.1.3](sign-out.md#sign-out-1-3),
    [sessions.3.4](sessions.md#sessions-3-4): the operator signs out a
    profile, sweeps, by the CLI.

@@ -16,8 +16,8 @@ A session ends by itself too, by time or over the limit, `EXPIRED_*`,
 
 | # | Actor | Story | Needs | Status |
 |---|---|---|---|---|
-| <a id="sign-out-1-1"></a>1.1 | end user | **I sign out, and the token works no more, from the very next request.**<br>• Closing a session forgets it in the cache after the storage commits: the next request misses the cache and finds it closed.<br>• Signing out with a closed, expired or unknown token succeeds: there is nothing to tell an attacker, and a client may retry. | [sessions.2.2](sessions.md#sessions-2-2) | Draft |
-| <a id="sign-out-1-2"></a>1.2 | end user | **I sign out one session, a lost phone, or all of them but this one.**<br>• By the public id of a session of the caller's own; another's is not found. | [sessions.3.2](sessions.md#sessions-3-2) | Draft |
+| <a id="sign-out-1-1"></a>1.1 | end user | **I sign out, and the token works no more, from the very next request.**<br>• Closing a session forgets it in the cache after the storage commits: the next request misses the cache and finds it closed.<br>• Signing out with a closed, expired or unknown token succeeds: there is nothing to tell an attacker, and a client may retry.<br>• Any caller may: `op_sign_out` of the unit `auth.sign_out` requires no permission, a caller of no session, the anonymous one of a token closed, signing out of nothing (the user, 2026-11-15); over gRPC, `SignOut.SignOut` of `ingot_auth.sign_out.v1`, run for the caller of the token.<br>• The session closes `SIGNED_OUT`, by its own user, `closed_by` ([sessions.3.5](sessions.md#sessions-3-5)). | [sessions.2.2](sessions.md#sessions-2-2) | Accepted |
+| <a id="sign-out-1-2"></a>1.2 | end user | **I sign out one session, a lost phone, or all of them but this one.**<br>• By the public id of a session of the caller's own; another's is not found.<br>• `RevokeOwnSession(session_id)` and `RevokeOtherSessions`, which tells how many it closed, of the service `Sessions` of `ingot_auth.sessions.v1`; the flag `CAN_REVOKE_OWN` of `auth.sessions`, granted by `auth.grp_signed_in` (the user, 2026-11-15), which an application takes off by its class in the slot, a kiosk. A session revoked closes `REVOKED`, by the caller. | [sessions.3.2](sessions.md#sessions-3-2) | Accepted |
 | <a id="sign-out-1-3"></a>1.3 | operator | **I sign out every session of a profile, a stolen account.** | [sessions.1.2](sessions.md#sessions-1-2) | Draft |
 | <a id="sign-out-1-4"></a>1.4 | operator | **I block a profile: it signs in no more, its sessions close.**<br>• A profile is blocked when it has the sign-in of no method; blocking takes them off and closes its sessions ([Q1](#sign-out-q1)). | [1.3](#sign-out-1-3), [access.1.2](access.md#access-1-2) | Draft |
 
@@ -44,10 +44,13 @@ The end user through the client (stories [1.1](#sign-out-1-1),
 [1.2](#sign-out-1-2)):
 
 ```python
-await sessions.SignOut(Empty(), metadata=auth)
-await sessions.RevokeOwn(RevokeOwnRequest(session_id=lost.id), metadata=auth)
-await sessions.RevokeOthers(Empty(), metadata=auth)
+await sign_out.SignOut(SignOutRequest(), metadata=auth)
+await sessions.RevokeOwnSession(RevokeOwnSessionRequest(session_id=lost.id), metadata=auth)
+await sessions.RevokeOtherSessions(RevokeOtherSessionsRequest(), metadata=auth)
 ```
+
+The prototype [own](own/) runs it in the code of the operations, with the
+own sessions and the profile of the caller.
 
 The operator (stories [1.3](#sign-out-1-3), [1.4](#sign-out-1-4),
 [sessions.3.4](sessions.md#sessions-3-4)), by the CLI of the project:

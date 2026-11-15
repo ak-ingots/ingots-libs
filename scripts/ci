@@ -23,6 +23,7 @@ if [[ $target == v[0-9]* ]]; then
     done
     failed=$(net gh run view "$run" --json jobs \
         --jq '[.jobs[] | select(.conclusion == "failure").name] | join(", ")')
+    [ "$status" = waiting ] && conclusion="for an approval"
     echo "$name $target: $status $conclusion${failed:+; failed: $failed}"
     [ "$status" = waiting ] || [ "$conclusion" = success ]
     exit

@@ -277,7 +277,8 @@ the order of `Needs`: a slice takes no story before those it needs.
    the flags `auth.grp_signed_in` grants; the place of a session by a
    strategy deriving its attributes; the record by the command line and
    over gRPC; the hash told by the servicers of a signed-in caller. Five
-   pull requests, a story or two each, in this order, then 0.3.0.
+   pull requests, a story or two each, in this order, then 0.3.0. Built,
+   the move of `AttrValue` a pull request of its own.
 5. [sign-out.1.3](sign-out.md#sign-out-1-3),
    [sessions.3.4](sessions.md#sessions-3-4): the operator signs out a
    profile, sweeps, by the CLI.

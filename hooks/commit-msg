@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# commit-msg: a title, a blank line, lines within 72 columns, as the squash
+# commit takes the message of the pull request; scripts/pr checks its
+# message file with it before anything else.
+awk '/^# -+ >8 -+$/ {exit}
+     /^#/ {next}
+     {n++}
+     n == 2 && NF {print "line 2: not blank after the title" > "/dev/stderr"; bad = 1}
+     length > 72 {print "line " n ": " length " columns" > "/dev/stderr"; bad = 1}
+     END {exit bad}' "$1" || { echo "commit-msg: $1 refused" >&2; exit 1; }

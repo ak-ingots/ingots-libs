@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(scripts/ci *)",
+      "Bash(scripts/merged)",
+      "Bash(scripts/merged *)",
+      "Bash(scripts/release *)"
+    ]
+  }
+}

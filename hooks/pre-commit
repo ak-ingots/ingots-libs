@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# pre-commit: the fast checks of the repository, its lint and tests, the
+# design prototypes in the meta; `git commit -n` skips them for a draft.
+# They check the working tree, what is not staged too.
+set -uo pipefail
+meta=$(cd "$(dirname "$0")/.." && pwd)
+cd "$(git rev-parse --show-toplevel)"
+targets="lint test"
+[ "$PWD" = "$meta" ] && targets=check-prototypes
+log=$(mktemp)
+if ! make -s $targets > "$log" 2>&1; then
+    tail -40 "$log" >&2
+    echo "pre-commit: make $targets failed; git commit -n for a draft" >&2
+    exit 1
+fi
+rm -f "$log"

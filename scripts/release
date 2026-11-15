@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# release <repo> <X.Y.Z>: the branch release-X.Y.Z from the current main,
+# the version set, the changelog collated; prints the section of the release.
+# scripts/pr commits it.
+source "$(dirname "$0")/lib.sh"
+enter "$1"
+version=$2
+[ "$(git branch --show-current)" = main ] || die "$name: not on main"
+git diff --quiet HEAD || die "$name: local changes"
+net git pull -q --ff-only
+git switch -q -c "release-$version"
+uv version -q "$version"
+make -s cl-build VERSION="$version" > /dev/null
+awk -v head="## [$version]" '/^## \[/ {p = index($0, head) == 1} p' CHANGELOG.md

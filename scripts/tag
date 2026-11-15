@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# tag <repo> <X.Y.Z>: once the release pull request is merged, main pulled,
+# its branch deleted, the tag vX.Y.Z on its merge commit pushed, which starts
+# the release workflow; scripts/ci <repo> vX.Y.Z waits for it.
+source "$(dirname "$0")/lib.sh"
+enter "$1"
+version=$2
+if [ "$(git branch --show-current)" = main ]; then
+    merge=$(net gh pr list --state merged --head "release-$version" \
+        --json mergeCommit --jq '.[0].mergeCommit.oid // empty')
+    [ -n "$merge" ] || die "$name: release-$version not merged"
+    net git pull -q --ff-only
+else
+    merge=$(finish_branch)
+fi
+grep -qx "version = \"$version\"" <(git show "$merge:pyproject.toml") \
+    || die "$name: ${merge:0:7} is not $version"
+git tag "v$version" "$merge"
+net git push -q origin "v$version"
+echo "$name: v$version on ${merge:0:7}"

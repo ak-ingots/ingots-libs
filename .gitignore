@@ -8,6 +8,11 @@
 !/repos.txt
 !/Makefile
 !/.github/
+!/.claude/
+/.claude/*
+!/.claude/settings.json
+!/scripts/
+!/hooks/
 !/docs/
 
 .idea/

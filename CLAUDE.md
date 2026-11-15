@@ -58,6 +58,16 @@ not extend to the next. Never merge a pull request: the user does
 - Before pushing a branch, rebase it onto the current `main` and run
   `make check`; pushing what CI will reject only wastes a run.
 - After the user merges, switch to `main`, pull and delete the local branch.
+- `scripts/` takes each step of this routine in one call, its header
+  telling how: `pr` checks, commits, pushes and opens the pull request,
+  `ci` waits for the checks or a release and prints a line (run it in the
+  background), `merged` pulls `main` and deletes the branch, `release` and
+  `tag` make a release; `.claude/settings.json` allows those that change
+  nothing remote, `ci`, `merged` and `release`. `make hooks`
+  (run by `make clone`) points git at `hooks/` in every repository:
+  pre-commit runs `make lint test` (`check-prototypes` here), commit-msg
+  keeps the message within 72 columns; `git commit -n` skips them for a
+  draft.
 - A new repository gets the same ruleset and merge settings: squash merging
   only, PR title and description as the commit, head branches deleted after
   merge, the update of a PR branch always suggested. The ruleset requires

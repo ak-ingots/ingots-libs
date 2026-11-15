@@ -11,4 +11,5 @@ net git pull -q --ff-only
 git switch -q -c "release-$version"
 uv version -q "$version"
 make -s cl-build VERSION="$version" > /dev/null
+git add pyproject.toml uv.lock  # towncrier stages its own
 awk -v head="## [$version]" '/^## \[/ {p = index($0, head) == 1} p' CHANGELOG.md

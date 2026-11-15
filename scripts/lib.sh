@@ -18,15 +18,16 @@ enter() {
 # branch deleted; prints the merge commit, fails while it is open. The
 # steps check themselves, as a caller testing it turns errexit off.
 finish_branch() {
-    local branch info pr state head merge
+    local branch info pr state merge commits
     branch=$(git branch --show-current)
     [ "$branch" != main ] || die "$name: on main"
-    info=$(net gh pr view "$branch" --json number,state,headRefOid,mergeCommit \
-        --jq '"\(.number) \(.state) \(.headRefOid) \(.mergeCommit.oid // "-")"' \
+    info=$(net gh pr view "$branch" --json number,state,mergeCommit,commits \
+        --jq '"\(.number) \(.state) \(.mergeCommit.oid // "-") \([.commits[].oid] | join(","))"' \
         2> /dev/null) || die "$name: $branch has no pull request"
-    read -r pr state head merge <<< "$info"
+    read -r pr state merge commits <<< "$info"
     [ "$state" = MERGED ] || die "$name: $branch, #$pr $state"
-    [ "$(git rev-parse HEAD)" = "$head" ] || die "$name: $branch beyond #$pr"
+    # a commit of the branch, not one beyond it; GitHub may have merged main in
+    [[ ",$commits," == *",$(git rev-parse HEAD),"* ]] || die "$name: $branch beyond #$pr"
     git switch -q main || die "$name: cannot switch to main"
     net git pull -q --ff-only || die "$name: cannot pull main"
     git branch -q -D "$branch" || die "$name: cannot delete $branch"

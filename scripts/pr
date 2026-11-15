@@ -1,9 +1,19 @@
 #!/usr/bin/env bash
-# pr <repo> <message> [branch]: commits the change of a repository with a
-# message file, everything but profile.txt when nothing is staged, on a new
-# branch when on main, after its check; pushes it and opens its pull request,
-# the message without its trailer as the description, unless it is open.
+# pr [-p <ref>] <repo> <message> [branch]: commits the change of a
+# repository with a message file, everything but profile.txt when nothing is
+# staged, on a new branch when on main, after its check; pushes it and opens
+# its pull request, the message without its trailer as the description,
+# unless it is open. -p: "Part of <ref>." ends the description, a design or
+# a pull request of another repository, which GitHub links back.
 source "$(dirname "$0")/lib.sh"
+part_of=
+while getopts p: opt; do
+    case $opt in
+        p) part_of=$OPTARG ;;
+        *) die "usage: pr [-p <ref>] <repo> <message> [branch]" ;;
+    esac
+done
+shift $((OPTIND - 1))
 msg=$(realpath "$2")
 enter "$1"
 "$meta/hooks/commit-msg" "$msg" || exit 1
@@ -32,6 +42,7 @@ body=$(mktemp)
 {
     sed '1,2d; /^Co-Authored-By:/d' "$msg" \
         | awk 'NF {for (; n; n--) print ""; print; next} {n++}'
+    [ -z "$part_of" ] || printf '\nPart of %s.\n' "$part_of"
     printf '\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n'
 } > "$body"
 net gh pr create --base main --head "$branch" --title "$(head -1 "$msg")" \

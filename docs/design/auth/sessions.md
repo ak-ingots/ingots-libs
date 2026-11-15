@@ -156,7 +156,7 @@ ingot-grpcio runs an operation by `run_operation()` for the caller of its
 asynchronous hook `_get_caller`, the anonymous caller of the project by
 default, `operations.callers.get_anonymous()` of ingots, with what the
 application gives anyone (ingot-grpcio 0.12.1, ingots 0.33.2, the user,
-2026-11-13), that of the auth given what the group `grp_anonymous` grants.
+2026-11-13), that of the auth given what the group `auth.grp_anonymous` grants.
 A servicer open to anyone extends `GrpcServicer`
 alone; the others extend the base of the contrib, which overrides the hook
 alone:

@@ -60,6 +60,8 @@ not extend to the next. Never merge a pull request: the user does
 - After the user merges, switch to `main`, pull and delete the local branch.
 - `scripts/` takes each step of this routine in one call, its header
   telling how: `pr` checks, commits, pushes and opens the pull request,
+  `-p` naming what it is part of, the design or the pull request of a
+  change spanning repositories, so that GitHub links them back,
   `ci` waits for the checks or a release and prints a line (run it in the
   background), `merged` pulls `main` and deletes the branch, `release` and
   `tag` make a release; `.claude/settings.json` allows all but `tag`,

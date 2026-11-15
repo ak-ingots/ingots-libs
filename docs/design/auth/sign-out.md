@@ -18,7 +18,7 @@ A session ends by itself too, by time or over the limit, `EXPIRED_*`,
 |---|---|---|---|---|
 | <a id="sign-out-1-1"></a>1.1 | end user | **I sign out, and the token works no more, from the very next request.**<br>• Closing a session forgets it in the cache after the storage commits: the next request misses the cache and finds it closed.<br>• Signing out with a closed, expired or unknown token succeeds: there is nothing to tell an attacker, and a client may retry.<br>• Any caller may: `op_sign_out` of the unit `auth.sign_out` requires no permission, a caller of no session, the anonymous one of a token closed, signing out of nothing (the user, 2026-11-15); over gRPC, `SignOut.SignOut` of `ingot_auth.sign_out.v1`, run for the caller of the token.<br>• The session closes `SIGNED_OUT`; who closed it, `closed_by`, comes with the record ([sessions.3.5](sessions.md#sessions-3-5)).<br>• Over gRPC the token of the call gives the caller; one closed, expired or unknown gives the anonymous one, which signs out of nothing, where another servicer refuses it. | [sessions.2.2](sessions.md#sessions-2-2) | Implemented |
 | <a id="sign-out-1-2"></a>1.2 | end user | **I sign out one session, a lost phone, or all of them but this one.**<br>• By the public id of a session of the caller's own; another's is not found.<br>• `RevokeOwnSession(session_id)` and `RevokeOtherSessions`, which tells how many it closed, of the service `Sessions` of `ingot_auth.sessions.v1`; the flag `CAN_REVOKE_OWN` of `auth.sessions`, granted by `auth.grp_signed_in` (the user, 2026-11-15), which an application takes off by its class in the slot, a kiosk. A session revoked closes `REVOKED`, by the caller.<br>• An own session not found, of another, closed or unknown, is `AuthOwnSessionNotFoundError`, `NOT_FOUND` over gRPC, `OWN_SESSION_NOT_FOUND`: the caller stays signed in, where a token not found is `UNAUTHENTICATED`. | [sessions.3.2](sessions.md#sessions-3-2) | Implemented |
-| <a id="sign-out-1-3"></a>1.3 | operator | **I sign out every session of a profile, a stolen account.** | [sessions.1.2](sessions.md#sessions-1-2) | Draft |
+| <a id="sign-out-1-3"></a>1.3 | operator | **I sign out every session of a profile, a stolen account.**<br>• `auth.sessions.op_revoke_all`, `AuthRevokeAllSessionsParameters(profile_uid=...)`, closing every open session of the profile `REVOKED`, giving how many: in one transaction, a record `revoke` of each in the activity log, its caller the operator; then the cache forgets the sessions and their callers.<br>• The flag `CAN_REVOKE` of `auth.sessions`, a bit of its own, granted by `auth.sessions.grp_admins`.<br>• On the command line `auth sessions revoke-all <profile_uid>`, as the root, and over gRPC `RevokeSessions(profile_uid)` of the service `Sessions`, for an admin UI ([Q2](#sign-out-q2)), telling how many.<br>• An unknown profile, or one with no open session, closes none and succeeds: 0.<br>• Example: given alice signed in on a phone and a laptop, when the operator revokes all of hers, then both tokens are refused from the next request, the log tells two `revoke` by the operator, and she signs in anew. | [sessions.1.2](sessions.md#sessions-1-2) | Draft |
 | <a id="sign-out-1-4"></a>1.4 | operator | **I block a profile: it signs in no more, its sessions close.**<br>• A profile is blocked when it has the sign-in of no method; blocking takes them off and closes its sessions ([Q1](#sign-out-q1)). | [1.3](#sign-out-1-3), [access.1.2](access.md#access-1-2) | Draft |
 
 ## Flows
@@ -56,10 +56,14 @@ The operator (stories [1.3](#sign-out-1-3), [1.4](#sign-out-1-4),
 [sessions.3.4](sessions.md#sessions-3-4)), by the CLI of the project:
 
 ```
-app auth sessions revoke-all <uid>
-app auth profiles block <uid>
+app auth sessions revoke-all <profile_uid>
+app auth profiles block <profile_uid>
 app auth sessions sweep
 ```
+
+and an admin UI over gRPC, `RevokeSessions(profile_uid)` and
+`SweepSessions()` of the service `Sessions`. The prototype [sweep](sweep/)
+runs the revoke and the sweep in the code of their operations.
 
 In the core, the sign-out is a package of its own, `ingot_auth/sign_out/`,
 as the sign-in is, likely with one operation, `op_sign_out` (the user,
@@ -81,3 +85,5 @@ as the sign-in is, likely with one operation, `op_sign_out` (the user,
    permission"? The user leans to the global one too: a permission missing
    tells "you may not by this method", not "you are banned", and unblocking
    would give back what there was. Holds [1.4](#sign-out-1-4), later.
+2. <a id="sign-out-q2"></a>Answered: both, the command line and gRPC (the
+   user, 2026-11-15: "админка не за горами").

@@ -11,6 +11,8 @@ them, their changes never show up here.
 ingots-libs/          # this repository
 ├── repos.txt         # ecosystem repositories, dependencies first
 ├── Makefile          # clone / pull / status / check / prs / ci / dep-*
+├── scripts/          # the routine: pr / ci / merged / release / tag
+├── hooks/            # git hooks of every repository, set by `make hooks`
 ├── llms.txt          # entry point for AI agents
 ├── docs/adr/         # ecosystem-wide architecture decisions
 ├── logo-gen/         # independent repositories, cloned by `make clone`

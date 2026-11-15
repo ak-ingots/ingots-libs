@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# ci <repo> [pr | vX.Y.Z]: waits for the checks of a pull request, that of
+# the current branch by default, or for the release workflow of a tag until
+# it ends or waits for an approval; prints the outcome in a line, fails on
+# a failure. Meant for the background: a single event when done.
+source "$(dirname "$0")/lib.sh"
+enter "$1"
+target=${2:-$(git branch --show-current)}
+if [[ $target == v[0-9]* ]]; then
+    run=
+    for _ in $(seq 20); do  # the run of a pushed tag shows up in a while
+        run=$(net gh run list --workflow release --branch "$target" --limit 1 \
+            --json databaseId --jq '.[0].databaseId // empty')
+        [ -n "$run" ] && break
+        sleep 15
+    done
+    [ -n "$run" ] || die "$name $target: no release run"
+    while :; do
+        read -r status conclusion < <(net gh run view "$run" \
+            --json status,conclusion --jq '"\(.status) \(.conclusion)"')
+        case $status in completed | waiting) break ;; esac
+        sleep 30
+    done
+    failed=$(net gh run view "$run" --json jobs \
+        --jq '[.jobs[] | select(.conclusion == "failure").name] | join(", ")')
+    echo "$name $target: $status $conclusion${failed:+; failed: $failed}"
+    [ "$status" = waiting ] || [ "$conclusion" = success ]
+    exit
+fi
+pr=$(net gh pr view "$target" --json number --jq .number)
+checks() { net gh pr checks "$pr" --json name,bucket --jq "$1" 2> /dev/null || true; }
+for _ in $(seq 20); do  # the checks of a pushed branch show up in a while
+    [ "$(checks length)" -gt 0 ] 2> /dev/null && break
+    sleep 15
+done
+while :; do  # a job that needs another shows up when that one ends
+    net gh pr checks "$pr" --watch --interval 30 > /dev/null 2>&1 || true
+    sleep 20
+    [ "$(checks 'map(select(.bucket == "pending")) | length')" = 0 ] && break
+done
+pass=$(checks 'map(select(.bucket == "pass")) | length')
+all=$(checks length)
+failed=$(checks 'map(select(.bucket == "fail" or .bucket == "cancel").name) | join(", ")')
+echo "$name#$pr: $pass/$all pass${failed:+; failed: $failed}"
+[ -z "$failed" ]

@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# pr <repo> <message> [branch]: commits the change of a repository with a
+# message file, everything but profile.txt when nothing is staged, on a new
+# branch when on main, after its check; pushes it and opens its pull request,
+# the message without its trailer as the description, unless it is open.
+source "$(dirname "$0")/lib.sh"
+msg=$(realpath "$2")
+enter "$1"
+"$meta/hooks/commit-msg" "$msg" || exit 1
+branch=$(git branch --show-current)
+if [ "$branch" = main ]; then
+    [ -n "${3:-}" ] || die "on main: name a branch"
+    branch=$3
+    git switch -q -c "$branch"
+fi
+git diff --cached --quiet && git add -A -- . ':!profile.txt'
+! git diff --cached --quiet || die "$name: nothing to commit"
+git diff --cached --name-status
+net git fetch -q --prune
+git merge-base --is-ancestor origin/main HEAD || die "$name: behind origin/main"
+target=check; [ "$1" = . ] && target=check-prototypes
+log=$(mktemp)
+make "$target" > "$log" 2>&1 || { tail -30 "$log"; die "make $target failed: $log"; }
+# -n: the hooks would only repeat the checks above
+git -c user.email="$(git -C "$meta" config user.email)" commit -q -n -F "$msg"
+net git push -q -u origin "$branch" \
+    2> >(grep -vE '^remote: *($|Create a pull request|https://github.com/.*/pull/new/)' >&2)
+if net gh pr view "$branch" --json url --jq .url 2> /dev/null; then
+    exit  # a commit more of an open pull request
+fi
+body=$(mktemp)
+{
+    sed '1,2d; /^Co-Authored-By:/d' "$msg" \
+        | awk 'NF {for (; n; n--) print ""; print; next} {n++}'
+    printf '\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n'
+} > "$body"
+net gh pr create --base main --head "$branch" --title "$(head -1 "$msg")" \
+    --body-file "$body"

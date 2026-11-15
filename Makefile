@@ -4,10 +4,11 @@ OWNER := ak-ingots
 REPOS := $(shell grep -v '^\#' repos.txt)
 DEPENDENTS := uv run --quiet --python 3.14 --no-project --with packaging python .github/scripts/dependents.py
 
-.PHONY: help clone pull status check buf prs ci dep-tree dep-behind dep-next dep-try check-prototypes check-prototype
+.PHONY: help clone hooks pull status check buf prs ci dep-tree dep-behind dep-next dep-try check-prototypes check-prototype
 
 help:
-	@echo "clone   clone missing repositories (gh, uses gh auth)"
+	@echo "clone   clone missing repositories (gh, uses gh auth), then hooks"
+	@echo "hooks   the git hooks of hooks/ in every repository"
 	@echo "pull    fast-forward every repository"
 	@echo "status  branch, local changes and divergence of every repository"
 	@echo "check   make check (lint, test) everywhere, dependencies first"
@@ -23,6 +24,12 @@ help:
 
 clone:
 	@for r in $(REPOS); do [ -d $$r ] || gh repo clone $(OWNER)/$$r; done
+	@$(MAKE) -s hooks
+
+# pre-commit (lint and tests) and commit-msg (72 columns); git commit -n
+# skips them for a draft
+hooks:
+	@for r in . $(REPOS); do git -C $$r config core.hooksPath $(CURDIR)/hooks; done
 
 pull:
 	@git pull --ff-only

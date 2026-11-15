@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# merged [repo...]: each repository whose pull request is merged back on
+# main, pulled, its branch deleted; every repository by default.
+source "$(dirname "$0")/lib.sh"
+[ $# -gt 0 ] || set -- . $(grep -v '^#' "$meta/repos.txt")
+for repo; do
+    (
+        enter "$repo"
+        branch=$(git branch --show-current)
+        [ "$branch" != main ] || exit 0
+        merge=$(finish_branch) && echo "$name: $branch merged, main at ${merge:0:7}"
+    ) || true
+done

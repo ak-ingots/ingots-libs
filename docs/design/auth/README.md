@@ -284,7 +284,7 @@ the order of `Needs`: a slice takes no story before those it needs.
    activity log, by [ADR 0015](../../adr/0015-keep-an-activity-log-in-each-addon.md),
    its strategy of a failure, the auditors, the changes of the core recorded,
    `closed_by` of a session gone; then 0.4.0 (the user, 2026-11-15: before
-   the rest).
+   the rest). Built, released as 0.4.0.
 6. [sign-out.1.3](sign-out.md#sign-out-1-3),
    [sessions.3.4](sessions.md#sessions-3-4): the operator signs out a
    profile, sweeps, by the CLI.

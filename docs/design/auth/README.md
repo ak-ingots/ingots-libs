@@ -279,13 +279,19 @@ the order of `Needs`: a slice takes no story before those it needs.
    over gRPC; the hash told by the servicers of a signed-in caller. Five
    pull requests, a story or two each, in this order, then 0.3.0. Built,
    the move of `AttrValue` a pull request of its own.
-5. [sign-out.1.3](sign-out.md#sign-out-1-3),
+5. [activity.1.1](activity.md#activity-1-1)–[1.3](activity.md#activity-1-3),
+   [2.1](activity.md#activity-2-1), [2.2](activity.md#activity-2-2): the
+   activity log, by [ADR 0015](../../adr/0015-keep-an-activity-log-in-each-addon.md),
+   its strategy of a failure, the auditors, the changes of the core recorded,
+   `closed_by` of a session gone; then 0.4.0 (the user, 2026-11-15: before
+   the rest).
+6. [sign-out.1.3](sign-out.md#sign-out-1-3),
    [sessions.3.4](sessions.md#sessions-3-4): the operator signs out a
    profile, sweeps, by the CLI.
-6. [sessions.3.3](sessions.md#sessions-3-3): the limit of the sessions.
-7. [auth.1.3](#auth-1-3): the first starter, `web`, out of what the slices
+7. [sessions.3.3](sessions.md#sessions-3-3): the limit of the sessions.
+8. [auth.1.3](#auth-1-3): the first starter, `web`, out of what the slices
    above built; the tests of the slices then bind it.
-8. The MongoDB backends of the sessions, with the profiles and identities
+9. The MongoDB backends of the sessions, with the profiles and identities
    still waiting for theirs. No story of its own: the stories above on
    another backend.
 

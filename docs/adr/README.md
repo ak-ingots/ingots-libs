@@ -26,3 +26,4 @@ metadata, like the status: they may change in a record already accepted.
 | [0012](0012-design-a-feature-before-building-it.md) | Design a feature before building it | process | Proposed |
 | [0013](0013-name-rpcs-after-their-operations.md) | Name the RPCs after their operations | grpc | Proposed |
 | [0014](0014-name-a-class-by-its-kind-or-its-role.md) | Name a class of ingots by its kind or its role | design | Proposed |
+| [0015](0015-keep-an-activity-log-in-each-addon.md) | Keep an activity log in each addon, of one shape | design, storage | Proposed |

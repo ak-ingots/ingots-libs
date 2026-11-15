@@ -14,7 +14,8 @@ user:
   metadata giving the registries to the consumers.
 - **Its permissions**: of [access](access.md), computed, not kept.
 - **Its version**, raised by each change of it, and **its history**: what
-  was done to it, when, by whom and why.
+  was done to it, when, by whom and why, the activity log of the auth
+  filtered by the profile ([activity](activity.md)).
 
 The client sees a part of it, the tags, the attributes and the permissions,
 to build its interface ([1.3](#profile-1-3)); the user takes all of it out,
@@ -39,7 +40,7 @@ or has it deleted, by the GDPR.
 
 | # | Actor | Story | Needs | Status |
 |---|---|---|---|---|
-| <a id="profile-2-1"></a>2.1 | operator | **I see the history of a profile: what was done to it, when, by whom and why, a change of an operator with the reason it gave, the number of a task.**<br>• An entry a change: created, blocked, a password set, an identifier bound, a tag or an attribute set, a group joined; its time, its actor, the user itself, an operator by its uid, or the system, what it changed and its reason.<br>• The operator gives the reason with the call ([Q6](#profile-q6)); an application may require one.<br>• Written in the transaction of the change, so that no change goes without its entry.<br>• Not the events of [sessions.3.7](sessions.md#sessions-3-7): those are for the others to react to, the history for the operator to read. | [1.2](#profile-1-2) | Draft |
+| <a id="profile-2-1"></a>2.1 | operator | **I see the history of a profile: what was done to it, when, by whom and why, a change of an operator with the reason it gave, the number of a task.**<br>• An entry a change: created, blocked, a password set, an identifier bound, a tag or an attribute set, a group joined; its time, its actor, the user itself, an operator by its uid, or the system, what it changed and its reason.<br>• The operator gives the reason with the call ([Q6](#profile-q6)); an application may require one.<br>• Written in the transaction of the change, so that no change goes without its entry: the activity log, [activity.1.3](activity.md#activity-1-3), the reason of an operator in its context once [Q6](#profile-q6) is answered.<br>• Not the events of [sessions.3.7](sessions.md#sessions-3-7): those are for the others to react to, the history for the operator to read. | [1.2](#profile-1-2) | Draft |
 
 ### 3. The data of a user, by the GDPR
 

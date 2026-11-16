@@ -1,6 +1,6 @@
 # ingot-mail: the mail and its mailers
 
-- Status: Accepted (the user, 2026-11-16); slice 1 built
+- Status: Built, released as ingot-mail 0.2.0 (2026-11-16)
 - Packages: ingot-mail
 - Date: 2026-11-16
 - ADRs: 0004, 0005, 0007, 0010, 0014
@@ -39,9 +39,10 @@ other addons use it, which is theirs to design.
 | 4 | author of a backend | **I prove my mailer by the contract.**<br>• `MailerContract` of `ingot_mail.testing.contracts`, its hook `get_delivered()` reading back what was delivered: a mail as sent, of any letters, several addresses, every one of several mails, from `MAIL_FROM`, a header unfit refused. The memory mailer runs it in the unit tests, aiosmtplib against Mailpit in `make integration`, reading its HTTP API. | now |
 | 5 | author of an application | **I tell a failure to retry from one to give up.**<br>• `MailDeliveryError.is_transient`: no connection, a timeout, a reply 4xx, transient; 5xx, permanent. The retry is the caller's. A backend wraps the errors of its library: a caller imports none. | now |
 | 6 | operator | I send a test mail from the command line, to check the configs: `mail send-test <to>`. | later |
-| 7 | author of an application | A mail of HTML, a reply-to, copies, attachments: fields of `Mail` with defaults, added without a break. | later |
-| 8 | author of an application | A backend of an HTTP API, Postmark, SES, ...: a contrib under its extra, the contract the same. | later |
-| 9 | author of an application | A connection kept between the mails, a pool: the mailer a component, opened on start. | later |
+| 7 | author of an application | **My mail tells its own headers, a request id.**<br>• `Mail.headers`, a mapping; `send()` refuses a name not of printable ASCII or with a colon, a value not printable, and the headers of the mailer or of the addresses, in any case: `From`, `To`, `Cc`, `Bcc`, `Sender`, `Subject`, `Date`, `Message-ID`, `MIME-Version`, `Content-Type`, `Content-Transfer-Encoding`. The mailer of SMTP gives the server the addresses itself, never read from the headers (the user, 2026-11-16). | now, ingot-mail#4 |
+| 8 | author of an application | A mail of HTML, a reply-to, copies, attachments: fields of `Mail` with defaults, added without a break. | later |
+| 9 | author of an application | A backend of an HTTP API, Postmark, SES, ...: a contrib under its extra, the contract the same. | later |
+| 10 | author of an application | A connection kept between the mails, a pool: the mailer a component, opened on start. | later |
 
 ## Rules and examples
 
@@ -153,7 +154,12 @@ by `send()`.
    consumer: the contract. Built, ingot-mail#2.
 2. ingot-mail: `AiosmtplibMailer` under its extra, `MAIL_SMTP_*`, Mailpit in
    `docker-compose.yml`, `make integration` and its job in CI, the contract
-   against it, the log of each mail sent; release 0.2.0.
+   against it, the log of each mail sent; release 0.2.0. Built,
+   ingot-mail#3, with the headers of story 7, ingot-mail#4, and a hook of
+   the TLS context, `_get_tls_context()`, for a server verified by other
+   roots; an address refused among others accepted is a warning in the
+   log, not an error, as a retry would send the mail twice. Released as
+   0.2.0.
 
 The skeleton, the units alone, is released as 0.1.0 first, the name taken
 on PyPI.

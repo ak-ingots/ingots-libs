@@ -211,7 +211,10 @@ class AuthSweepSessionsParameters:
 class AuthRevokeAllSessionsOperation(
     BaseOperation[AuthRevokeAllSessionsParameters, int]
 ):
-    """Closes every open session of a profile, a stolen account: how many."""
+    """
+    Closes every open session of a profile, a stolen account, each in a
+    transaction of its own, as ``op_revoke_others``: how many.
+    """
 
     parent: "AuthSessionsUnit"
 
@@ -225,16 +228,16 @@ class AuthRevokeAllSessionsOperation(
         self, parameters: AuthRevokeAllSessionsParameters, metadata: OperationMetadata
     ) -> int:
         auth = self.parent.parent
-        async with auth.storage.transaction():
-            sessions = await auth.storage.get_open(parameters.profile_uid)
-            for session in sessions:
+        closed = 0
+        for session in await auth.storage.get_open(parameters.profile_uid):
+            async with auth.storage.transaction():
                 await auth.storage.close(session.uid, AuthSessionStatus.REVOKED)
                 await auth.activities.record(
                     self.parent, session.uid, "revoke", metadata
                 )
-        for session in sessions:  # after the commit
-            await auth.cache.forget(session.token_hash)
-        return len(sessions)
+            await auth.cache.forget(session.token_hash)  # after the commit
+            closed += 1
+        return closed
 
 
 class AuthSweepSessionsOperation(BaseOperation[AuthSweepSessionsParameters, int]):

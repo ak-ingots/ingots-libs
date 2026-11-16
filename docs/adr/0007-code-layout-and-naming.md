@@ -72,6 +72,23 @@ name is only used inside a function body; what is needed at import time
 (base classes, decorators, default values, class bodies) is defined first,
 and only that breaks the order.
 
+### The data of the operations
+
+What a class belongs to lives by its role (added 2026-11-16). The
+parameters of an operation, `*Parameters`, and a result of its own,
+`*Result`, are part of it: they live in its module, above it, or above the
+base of the family of operations they serve, named after it, as
+[0014](0014-name-a-class-by-its-kind-or-its-role.md) names them. The data
+of a package, what several parts pass around, a token, what a client sees,
+the context of an activity, the records of a storage, the items of a
+registry, is a contract: a bare noun, in its module `data.py`, never named
+after one operation. `data.py` holds no `*Parameters` nor `*Result`: one
+found there moves to its operation, or is renamed as the contract it is.
+Not `models.py`, a model of an ORM, nor `contracts.py`, the contract tests
+([0010](0010-keep-contracts-under-testing.md)), nor `items.py`,
+the items of a registry alone, nor `entities.py`, `records.py`, kinds of
+their own.
+
 ### Naming
 
 - **Methods and functions are named by their action**: a verb, or a verb
@@ -115,3 +132,5 @@ and only that breaks the order.
 - [0004](0004-static-composition-with-typed-slots.md): slots and composition
   by inheritance.
 - [0006](0006-design-principles.md): design principles, PEP 8.
+- [0014](0014-name-a-class-by-its-kind-or-its-role.md): a class named by its
+  kind or its role, `*Parameters` among the roles.

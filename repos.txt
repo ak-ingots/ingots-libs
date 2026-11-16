@@ -5,6 +5,7 @@ ingots
 ingot-settings
 ingot-grpcio
 ingot-pymongo
+ingot-redis
 ingot-sql
 ingot-mail
 ingot-auth

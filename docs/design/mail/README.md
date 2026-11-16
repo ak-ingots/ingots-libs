@@ -1,6 +1,6 @@
 # ingot-mail: the mail and its mailers
 
-- Status: Draft
+- Status: Accepted (the user, 2026-11-16); slice 1 built
 - Packages: ingot-mail
 - Date: 2026-11-16
 - ADRs: 0004, 0005, 0007, 0010, 0014
@@ -35,7 +35,7 @@ other addons use it, which is theirs to design.
 |---|---|---|---|
 | 1 | author of an application | **I send a mail from an operation.**<br>• `await self.project.mail.mailer.send(Mail(to=(...,), subject=..., text=...))`; the sender is that of the mail, `sender`, else `MAIL_FROM`, by the hook `_get_sender(mail)` of the mailer.<br>• `Mail` of `ingot_mail.mail`, a frozen dataclass by keywords, plain text; its addresses and its text out of the `repr`, as it may hold a code. | now |
 | 2 | author of an application | **I declare the mailer of SMTP and configure it by the environment.**<br>• `pip install "ingot-mail[aiosmtplib]"`, `mailer = Slot(AiosmtplibMailer)` in a subclass of `MailUnit`, from `ingot_mail.contrib.aiosmtplib`; the slot of the core is abstract.<br>• `MAIL_SMTP_HOST`, `_PORT`, `_USER`, `_PASSWORD` (`SecureStrConfig`), `_TLS` (`NONE`, `STARTTLS`, `TLS`, by default `STARTTLS`), `_TIMEOUT`; in the core `MailConfigs`, as the configs of the environment belong to the infrastructure addon and import nothing of the extra.<br>• A connection a mail: connect, secure, log in, send, quit. A subclass reads other configs by the hooks `_get_host()` and the rest, as the clients of ingot-pymongo. | now |
-| 3 | author of an application | **My tests read what was sent.**<br>• `MemoryMailer` of `ingot_mail.contrib.memory`, no extra: `get_sent()`, the sender and the mail in their order. `python -m ingot_mail` runs with it. | now |
+| 3 | author of an application | **My tests read what was sent.**<br>• `MemoryMailer` of `ingot_mail.contrib.memory`, no extra: `get_sent()`, the mail in its order, each with the sender it was sent from in `sender`, as a backend reads it back. `python -m ingot_mail` runs with it. | now |
 | 4 | author of a backend | **I prove my mailer by the contract.**<br>• `MailerContract` of `ingot_mail.testing.contracts`, its hook `get_delivered()` reading back what was delivered: a mail as sent, of any letters, several addresses, every one of several mails, from `MAIL_FROM`, a header unfit refused. The memory mailer runs it in the unit tests, aiosmtplib against Mailpit in `make integration`, reading its HTTP API. | now |
 | 5 | author of an application | **I tell a failure to retry from one to give up.**<br>• `MailDeliveryError.is_transient`: no connection, a timeout, a reply 4xx, transient; 5xx, permanent. The retry is the caller's. A backend wraps the errors of its library: a caller imports none. | now |
 | 6 | operator | I send a test mail from the command line, to check the configs: `mail send-test <to>`. | later |
@@ -46,8 +46,9 @@ other addons use it, which is theirs to design.
 ## Rules and examples
 
 - Rule: a mail unfit to send is refused by `send()` of the base, final,
-  before any backend: no address, or a line break in the sender, an address or
-  the subject, `MailHeaderError` naming the header.
+  before any backend: no sender or no address, or a character not
+  printable, a line break for one, in the sender, an address or the
+  subject, `MailHeaderError` naming the header; an empty subject goes.
   - Example: given a subject `"Hi\r\nBcc: all@b.c"`, when it is sent, then
     `MailHeaderError("subject")`, and the server sees nothing.
 - Rule: the sender is the mail's, `sender`, when it tells one, else the
@@ -105,7 +106,7 @@ by `send()`.
 |---|---|---|
 | Spoofing | A mail from an address the application does not own. | The sender is `MAIL_FROM`, set by the operator, or that of the mail, set by the code of the application, never taken from the data of a request; the server of SMTP refuses a sender its account may not use. SPF and DKIM are the domain's. |
 | Tampering | A header injected by a line break in a subject or an address from a user, a `Bcc`. | Refused by `send()` of the base, before any backend; `EmailMessage` refuses it too. |
-| Repudiation | A mail sent, none can tell. | The logger `ingot_mail` tells each mail sent, its message id, no address nor text. |
+| Repudiation | A mail sent, none can tell. | The logger `ingot_mail` tells each mail sent, its message id, no address nor text: in slice 2, as the id comes with the message the backend builds. |
 | Information disclosure | A code of the sign-in in a log, a password of SMTP in a listing of the configs. | The `repr` of `Mail` hides the addresses and the text; `MAIL_SMTP_PASSWORD` a `SecureStrConfig`; `STARTTLS` by default, `NONE` for a server of the tests alone. |
 | Denial of service | A server of SMTP hanging holds the operation. | `MAIL_SMTP_TIMEOUT`, 30 seconds; a caller sends in the background where a reply must not wait. |
 | Elevation of privilege | — | The mailer runs no operation and grants nothing. |
@@ -149,10 +150,10 @@ by `send()`.
 
 1. ingot-mail: `Mail`, `BaseMailer`, the errors, `MAIL_FROM`, `MemoryMailer`,
    `MailerContract` run on it; `python -m ingot_mail` with it. First
-   consumer: the contract.
+   consumer: the contract. Built, ingot-mail#2.
 2. ingot-mail: `AiosmtplibMailer` under its extra, `MAIL_SMTP_*`, Mailpit in
    `docker-compose.yml`, `make integration` and its job in CI, the contract
-   against it; release 0.2.0.
+   against it, the log of each mail sent; release 0.2.0.
 
 The skeleton, the units alone, is released as 0.1.0 first, the name taken
 on PyPI.

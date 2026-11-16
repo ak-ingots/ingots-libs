@@ -337,7 +337,7 @@ own (story [1.1](#methods-1-1), ADR 0004):
 ```python
 class AppMethods(AuthMethods):
     nickname = Slot(AuthNicknameMethod)
-    email_code = Slot(AuthEmailCodeMethod)  # its mail by the mailer of the auth
+    email_code = Slot(AuthEmailCodeMethod)  # its mail by the mailer of the project
 
 class AppGrpcMethods(AuthGrpcMethods):
     nickname = Slot(AuthNicknameGrpcMethod)

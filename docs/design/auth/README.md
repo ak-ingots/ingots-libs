@@ -287,7 +287,8 @@ the order of `Needs`: a slice takes no story before those it needs.
    the rest). Built, released as 0.4.0.
 6. [sign-out.1.3](sign-out.md#sign-out-1-3),
    [sessions.3.4](sessions.md#sessions-3-4): the operator signs out a
-   profile, sweeps, by the CLI.
+   profile, sweeps, by the CLI and gRPC. Built by ingot-auth#66,
+   revoke-all, and #67, the sweep, its job the caller `auth.system`.
 7. [sessions.3.3](sessions.md#sessions-3-3): the limit of the sessions.
 8. [auth.1.3](#auth-1-3): the first starter, `web`, out of what the slices
    above built; the tests of the slices then bind it.

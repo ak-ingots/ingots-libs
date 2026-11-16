@@ -15,10 +15,11 @@ The method is whole, as every method of the catalogue (the user,
 какие-то простейшие базовые решения"): it builds its mail, a plain text in
 English, the code in its text only, by `_build_code_mail(email, code)` and
 `_build_denial_mail(email)`, which a subclass overrides to change the
-words, the language, a template, and sends it by the mailer of the auth,
-`BaseAuthMailer`, in the background. The mailer is of the infrastructure,
-a backend the application plugs into its auth as the storage, the cache,
-the transport and the dispatcher; the application declares the method as
+words, the language, a template, and sends it by the mailer of the
+project, that of ingot-mail, `AuthProject` being its `MailProject`, in the
+background (ingot-auth 0.6.0). The mailer is of the infrastructure, a
+backend the application plugs into its mail unit, as the storage, the
+cache, the transport and the dispatcher into its auth; the application declares the method as
 the slot of its methods, `email_code = Slot(AuthEmailCodeMethod)`, nothing
 more. The forming of the mail is the method's, the mailer only delivers a
 mail formed (the user, 2026-11-12): when the mail takes a context of its
@@ -28,7 +29,7 @@ dataclass of its context, which an application extends with its fields
 and its formatter, mypy checking them; the code alone needs none yet.
 
 `phone_code` is its twin by SMS, to come: its SMS a plain text too, sent by
-a sender of SMS of the auth, as the mail by the mailer.
+a sender of SMS, as the mail by the mailer.
 
 ## Stories
 
@@ -62,7 +63,7 @@ sequenceDiagram
     participant Client
     participant Server as EmailCode servicer
     participant Flow as SignIn servicer
-    participant Mail as mailer of the auth
+    participant Mail as mailer of the project
     Note over Client: the form of the email
     User->>Client: alice@example.com
     Client->>Server: EmailCode.StartSignIn(email, attr_values)
@@ -172,13 +173,15 @@ class AppMethods(AuthMethodsUnit):
 
 class AppAuthUnit(AuthUnit):
     dispatcher = Slot(AuthMemoryDispatcher)
-    mailer = Slot(AppMailer)  # a backend that delivers
+
+class AppMailUnit(MailUnit):  # of ingot-mail
+    mailer = Slot(AiosmtplibMailer)  # a backend that delivers
 
 # the words of its own, if the application wants them
 class AppEmailCodeMethod(AuthEmailCodeMethod):
     @t.override
-    def _build_code_mail(self, email: str, code: str) -> AuthMail:
-        return AuthMail(to=email, subject="Votre code", text=f"Code : {code}")
+    def _build_code_mail(self, email: str, code: str) -> Mail:
+        return Mail(to=(email,), subject="Votre code", text=f"Code : {code}")
 ```
 
 ### Sign-up, Python: Implemented

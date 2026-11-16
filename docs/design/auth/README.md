@@ -203,7 +203,8 @@ Six months on, the auth failed. Why:
   ([sessions](sessions.md)).
 - A revoked token still worked: the cache was not cleared, or another
   process had its own memory cache. Forgetting follows each close; the memory
-  cache is for one process only, said in its docs, Redis for more.
+  cache is for one process only, said in its docs, `AuthRedisCache` for
+  more (ingot-auth 0.6.0).
 - The strategy of the permissions was too narrow. It takes the uid and
   returns `Permissions`, of the groups of the user; if it needs the
   session, it takes the record instead ([access](access.md)).

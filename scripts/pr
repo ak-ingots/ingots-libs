@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # pr [-p <ref>] <repo> <message> [branch]: commits the change of a
-# repository with a message file, everything but profile.txt when nothing is
-# staged, on a new branch when on main, after its check; pushes it and opens
+# repository with a message file, the index if anything is staged, the rest
+# put aside till the commit so that the check sees what is committed alone,
+# else everything, on a new branch when on main; pushes it and opens
 # its pull request, the message without its trailer as the description,
 # unless it is open. -p: "Part of <ref>." ends the description, a design or
 # a pull request of another repository, which GitHub links back.
@@ -23,8 +24,16 @@ if [ "$branch" = main ]; then
     branch=$3
     git switch -q -c "$branch"
 fi
-git diff --cached --quiet && git add -A -- . ':!profile.txt'
-! git diff --cached --quiet || die "$name: nothing to commit"
+if git diff --cached --quiet; then
+    git add -A
+    ! git diff --cached --quiet || die "$name: nothing to commit"
+else
+    stashes=$(git stash list | wc -l)
+    git stash push -q --keep-index --include-untracked
+    if [ "$(git stash list | wc -l)" -gt "$stashes" ]; then
+        trap 'git stash pop -q' EXIT
+    fi
+fi
 git diff --cached --name-status
 net git fetch -q --prune
 git merge-base --is-ancestor origin/main HEAD || die "$name: behind origin/main"

@@ -1,6 +1,6 @@
 # Testing: a project as a fixture
 
-- Status: Draft
+- Status: Proposed
 - Packages: ingots (`ingots.testing`); its first consumers ingot-auth
   (`tests/`) and its `examples/game/scenarios`
 - Date: 2026-11-17
@@ -71,6 +71,13 @@ written once, in ingots.
 - Rule: a project of a fixture lives one test: created in `asyncSetUp`,
   in the loop of the test, shut down by a cleanup, the later fixture first.
 - Rule: a fixture is read during a test only; outside, a `RuntimeError`.
+- Rule: a mixin declares a fixture as a test case does. The fixtures are
+  created before the `asyncSetUp` of the bases, so a contract of ADR 0005
+  reads its project in its own; `ProjectTestCase` comes last of the
+  bases, in place of `IsolatedAsyncioTestCase`.
+  - Example: `RedisSessionsCacheTestCase(ServerMixin,
+    AuthSessionsCacheContract, ProjectTestCase)`, `ServerMixin` declaring
+    `server = ProjectFixture(...)` and `create_project()` returning it.
 - Rule: `testing run` runs the tests in a thread of their own, as a test case
   runs its own event loop, not in the running one of the command.
 
@@ -155,6 +162,7 @@ None for now.
 1. ingots: the config `IS_CONFIGURE_LOGGING`, `ProjectFixture`,
    `ProjectTestCase`, stories 1, 2, 3, 6; their first consumer the tests
    of the storage and the cache of ingot-auth, in place of `ServerMixin`.
+   Built: ingots 0.35.0 (ak-ingots/ingots#40); ingot-auth moves to it.
 2. ingots: `TestingProject`, `TestingUnit`, `RunTestsCommand`, stories
    4, 5, 8; their first consumer `examples/game/scenarios`, a project
    with the client of ingot-grpcio.

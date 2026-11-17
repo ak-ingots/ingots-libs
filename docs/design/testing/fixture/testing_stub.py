@@ -45,20 +45,18 @@ class ProjectFixture[P: Project]:
         self.cls = cls
         self.configs = dict(configs)
 
-    def __set_name__(self, owner: type["ProjectTestCase"], name: str) -> None:
-        owner._fixtures = (*owner._fixtures, self)
-
     @t.overload
     def __get__(self, obj: None, owner: type) -> t.Self: ...
 
+    # any owner: a mixin declares a fixture too, a test case joins it
     @t.overload
-    def __get__(self, obj: "ProjectTestCase", owner: type) -> P: ...
+    def __get__(self, obj: object, owner: type) -> P: ...
 
-    def __get__(self, obj: "ProjectTestCase | None", owner: type) -> t.Self | P:
+    def __get__(self, obj: object, owner: type) -> t.Self | P:
         if obj is None:
             return self
         try:
-            return t.cast(P, obj._projects[self])
+            return t.cast(P, t.cast(ProjectTestCase, obj)._projects[self])
         except (AttributeError, KeyError):
             raise RuntimeError("a project of a fixture exists during a test only")
 
@@ -76,19 +74,34 @@ class ProjectFixture[P: Project]:
 
 
 class ProjectTestCase(unittest.IsolatedAsyncioTestCase):
-    """A test case of the projects of its fixtures."""
+    """
+    A test case of the projects of its fixtures, of its class, its bases and
+    its mixins, created before the ``asyncSetUp`` of the bases, which read
+    them there: the last of the bases, after a contract of an addon.
+    """
 
     _fixtures: t.ClassVar[tuple[ProjectFixture[t.Any], ...]] = ()
     _projects: dict[ProjectFixture[t.Any], Project]
 
     @t.override
+    @classmethod
+    def __init_subclass__(cls, **kwargs: t.Any) -> None:
+        super().__init_subclass__(**kwargs)
+        fixtures: dict[str, ProjectFixture[t.Any]] = {}
+        for base in reversed(cls.__mro__):
+            for name, value in vars(base).items():
+                if isinstance(value, ProjectFixture):
+                    fixtures[name] = value
+        cls._fixtures = tuple(fixtures.values())
+
+    @t.override
     async def asyncSetUp(self) -> None:
-        await super().asyncSetUp()
         self._projects = {}
         for fixture in self._fixtures:
             project = await fixture._create()
             self.addAsyncCleanup(project._do_shut_down)
             self._projects[fixture] = project
+        await super().asyncSetUp()
 
 
 class RunTestsCommand(BaseCommand):

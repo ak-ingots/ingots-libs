@@ -22,10 +22,15 @@ class CacheTestCase(ProjectTestCase):
         LOOPS.append(asyncio.get_running_loop())
 
 
-class TwoProjectsTestCase(ProjectTestCase):
-    """A server and its client, two projects of one test."""
+class ServerMixin:
+    """A fixture of a mixin: the server of the tests of several cases."""
 
     server = ProjectFixture(CacheProject, configs={"REDIS_PORT": "1"})
+
+
+class TwoProjectsTestCase(ServerMixin, ProjectTestCase):
+    """A server and its client, two projects of one test."""
+
     client = ProjectFixture(CacheProject, configs={"REDIS_PORT": "2"})
 
     async def test_both_are_there(self) -> None:

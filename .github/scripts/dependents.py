@@ -38,7 +38,10 @@ def read_requirements(repo: str, ref: str = "origin/main") -> dict[str, Requirem
         *project.get("dependencies", []),
         *(line for extra in extras for line in extra),
     ]
-    return {req.name: req for req in map(Requirement, lines)}
+    # an extra joining others names the package itself: no requirement
+    return {
+        req.name: req for req in map(Requirement, lines) if req.name != project["name"]
+    }
 
 
 def read_tree() -> dict[str, dict[str, Requirement]]:

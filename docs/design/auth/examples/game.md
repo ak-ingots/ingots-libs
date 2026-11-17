@@ -144,9 +144,10 @@ class SignUpByEmailScenario(GameMixin, unittest.IsolatedAsyncioTestCase):
    `AuthGrpcSessionsBinding`, the metadata, the profile and its hash,
    what a sign-up and a sign-in refuse. Built: ingot-auth#78.
 4. Stories 6 and 7: the operator and the auditor on the command line,
-   the stories of the auth marked `game slice 4`, the second process.
-   The scenarios are a project of their own since ingot-auth#80, run by
+   the second process, `test_operator` and `test_processes`. The
+   scenarios are a project of their own since ingot-auth#80, run by
    `testing run` ([testing](../../testing/README.md), its slice 2).
+   Built: ingot-auth#81.
 5. The starter, [auth.1.3](../README.md#auth-1-3): what the composition
    of the example shares with any game moves to
    `ingot_auth.contrib.starters.game`, importable with the extra `game`;

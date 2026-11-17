@@ -1,7 +1,11 @@
 # A light SQL layer for ingot-sql
 
 Status: an idea, talked through on 2026-10-23; not an ADR, nothing built.
-Next step: a prototype here, checked by `make check-prototypes`.
+The skeleton of `ingot-sql` left the ecosystem on 2026-11-17, at 0.10.0 on
+PyPI, its repository archived: it held no code, only its pin of ingots to
+move. The addon comes back, under the same name above that version, with
+its first feature. Next step: a prototype here, checked by
+`make check-prototypes`.
 
 ## What we want
 

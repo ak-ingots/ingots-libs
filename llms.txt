@@ -16,7 +16,6 @@
 - [ingot-grpcio](https://github.com/ak-ingots/ingot-grpcio/blob/main/README.md): an addon integrating grpcio, the gRPC library of Google; the servers, the clients, the errors and the export of the services
 - [ingot-pymongo](https://github.com/ak-ingots/ingot-pymongo/blob/main/README.md): an addon integrating PyMongo, the official driver of MongoDB, on its asynchronous API; the clients of MongoDB servers, as components
 - [ingot-redis](https://github.com/ak-ingots/ingot-redis/blob/main/README.md): an addon integrating redis-py, the official client of Redis, on its asynchronous API; the clients of Redis servers, as components
-- [ingot-sql](https://github.com/ak-ingots/ingot-sql/blob/main/README.md): an addon for SQL databases - typed tables, typical queries, raw SQL at hand; the skeleton so far
 - [ingot-mail](https://github.com/ak-ingots/ingot-mail/blob/main/README.md): an addon for the mail of applications - the mail of plain text with its headers, the mailer and its contract, the mailers in memory and of SMTP on aiosmtplib
 - [ingot-auth](https://github.com/ak-ingots/ingot-auth/blob/main/README.md): an addon for the sign-up, the sign-in and the sessions of the users of an application, assuming no details of them; the sign-up and the sign-in by methods in steps, their policies, the sessions, the groups of the users, over gRPC, in MongoDB and Redis, the mail by ingot-mail; on PyPI since 0.1.0, documented on Read the Docs as a subproject of ingots
 

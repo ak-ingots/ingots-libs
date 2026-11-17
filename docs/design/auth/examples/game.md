@@ -140,10 +140,9 @@ class SignUpByEmailScenario(GameMixin, unittest.IsolatedAsyncioTestCase):
    Docker, the first scenario, story 3, `make example-test` and its CI
    job; the ruleset of ingot-auth requiring it, by a script for the user.
 2. Stories 4 and 5: the mail by Mailpit, the sign-out.
-3. The rest of the player, the stories of the auth marked
-   `game slice 3`: the sessions of the player by
+3. The rest of the player: the sessions of the player by
    `AuthGrpcSessionsBinding`, the metadata, the profile and its hash,
-   what a sign-up and a sign-in refuse.
+   what a sign-up and a sign-in refuse. Built: ingot-auth#78.
 4. Stories 6 and 7: the operator and the auditor on the command line,
    the stories of the auth marked `game slice 4`, the second process;
    after the command `testing run` of ingots, the scenarios a project of their

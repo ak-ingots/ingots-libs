@@ -42,6 +42,7 @@ alone, to see the integration from an application.
 | 6 | operator | I add a player to a group on the command line, `python -m app auth access members add`, and the player has its permission on its next call, without signing in again. | now |
 | 7 | player | My session opened on one process is known to the other, by the cache in Redis. | now |
 | 8 | player | A guest by its device, an email bound later; the profile, the wallet, the leaderboards of the metagame. | later |
+| 9 | author of ingot-auth | At the cut of a release I run the load on the dev server, the candidate against the release before it, one after the other on the same machine: the call with a token, the sign-in by its throughput, the floor of its timing off, the sign-up; p50, p95 and the calls a second of each go into the pull request of the release. Not on the runners of GitHub. The host quiet: the IDE connected to it off, the boost of the CPU off, the application, the servers and the load each on cores of their own, no swap-in during the run; the run refuses to start otherwise, and a run that swapped is void. Each run appends to `examples/game/perf/results.csv` of ingot-auth, a metric a row, in the pull request of the release: the date, the run, the version, its role, candidate or baseline, its commit, the Python and the servers as they ran, the host with its state, the scenario, the clients, the metric and its value; the two of a run compare on any host, the runs over time on the same host alone. | later |
 
 ## Flows
 
@@ -74,7 +75,7 @@ examples/game/
   app/                # AppProject, its units, __main__, as the guides name them
   scenarios/          # unittest cases of the client, their steps
   Dockerfile          # the wheel of dist/, its extras, game/
-  docker-compose.yml  # game twice, MongoDB, Redis, Mailpit
+  docker-compose.yml  # app twice, cli, MongoDB, Redis, Mailpit
 ```
 
 No `pyproject.toml` of its own: the example runs in the environment of
@@ -86,7 +87,12 @@ game = ["ingot-auth[grpcio,pymongo,redis]", "ingot-mail[aiosmtplib]"]
 ```
 
 The dev group takes it, the image installs `dist/*.whl[game]`, as the
-application of a user installs `ingot-auth[game]`. The Makefile of ingot-auth gains `example-test`: `make all`, the
+application of a user installs `ingot-auth[game]`.
+
+The operator runs its commands in the service `cli` of
+`docker-compose.yml`, the image of the application idle,
+`docker compose exec cli python -m app auth ...`, and a step of the
+scenarios does the same. The Makefile of ingot-auth gains `example-test`: `make all`, the
 image, `docker compose up`, the scenarios, `down`; `lint` takes
 `examples/`. The image installs the versions of `uv.lock`, by
 `uv export`, as the application of a user installs its own lock.
@@ -118,8 +124,6 @@ class SignUpByEmailScenario(GameMixin, unittest.IsolatedAsyncioTestCase):
 
 - The two processes behind one address: a proxy of gRPC in
   `docker-compose.yml`, or the scenario calling each by its port.
-- The operator in the scenarios: `docker compose exec game python -m app
-  ...` from the test, or a step of its own.
 
 ## Slices
 

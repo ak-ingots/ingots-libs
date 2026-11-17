@@ -165,5 +165,6 @@ None for now.
    Built: ingots 0.35.0 (ak-ingots/ingots#40); ingot-auth moves to it.
 2. ingots: `TestingProject`, `TestingUnit`, `RunTestsCommand`, stories
    4, 5, 8; their first consumer `examples/game/scenarios`, a project
-   with the client of ingot-grpcio.
+   with the client of ingot-grpcio. Built: ingots 0.35.1
+   (ak-ingots/ingots#44), ingot-auth#80.
 3. Then the slice 4 of the game: the operator and the second process.

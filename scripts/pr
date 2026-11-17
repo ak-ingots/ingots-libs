@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# pr [-p <ref>] <repo> <message> [branch]: commits the change of a
-# repository with a message file, the index if anything is staged, the rest
-# put aside till the commit so that the check sees what is committed alone,
-# else everything, on a new branch when on main; pushes it and opens
+# pr [-p <ref>] <repo> <message> [branch]: commits the index of a
+# repository with a message file, on a new branch when on main; fails on
+# any change not staged, untracked files too, for a review of the diff:
+# what was forgotten is staged, what is not to go is stashed by the
+# caller; pushes it and opens
 # its pull request, the message without its trailer as the description,
 # unless it is open. -p: "Part of <ref>." ends the description, a design or
 # a pull request of another repository, which GitHub links back.
@@ -18,21 +19,15 @@ shift $((OPTIND - 1))
 msg=$(realpath "$2")
 enter "$1"
 "$meta/hooks/commit-msg" "$msg" || exit 1
+unstaged=$(git status --porcelain | grep -v '^[MADRCT] ' || true)
+[ -z "$unstaged" ] || die "$name: not staged, stage or stash it:
+$unstaged"
+! git diff --cached --quiet || die "$name: nothing staged"
 branch=$(git branch --show-current)
 if [ "$branch" = main ]; then
     [ -n "${3:-}" ] || die "on main: name a branch"
     branch=$3
     git switch -q -c "$branch"
-fi
-if git diff --cached --quiet; then
-    git add -A
-    ! git diff --cached --quiet || die "$name: nothing to commit"
-else
-    stashes=$(git stash list | wc -l)
-    git stash push -q --keep-index --include-untracked
-    if [ "$(git stash list | wc -l)" -gt "$stashes" ]; then
-        trap 'git stash pop -q' EXIT
-    fi
 fi
 git diff --cached --name-status
 net git fetch -q --prune

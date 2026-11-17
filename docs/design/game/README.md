@@ -34,12 +34,12 @@ alone, to see the integration from an application.
 
 | # | Actor | Story | Now or later |
 |---|---|---|---|
-| 1 | author of the application | I compose `GameProject` of `AuthProject`, `GrpcProject`, `MongoDbProject`, `RedisProject`, its mail by SMTP, its methods the nickname and the email code, and run it by `python -m game grpc serve`. | now |
-| 2 | author of the application | I configure it by the environment alone, `GAME_*`, the servers by their hosts, the secrets apart. | now |
+| 1 | author of the application | I compose `AppProject` of `AuthProject`, `GrpcProject`, `MongoDbProject`, `RedisProject`, its mail by SMTP, its methods the nickname and the email code, and run it by `python -m app components run-forever --component grpc.servers.default`. | now |
+| 2 | author of the application | I configure it by the environment alone, `APP_*`, the servers by their hosts, the secrets apart. | now |
 | 3 | player | I sign up and sign in by a nickname and a password, and call with the token. | now |
 | 4 | player | I sign up by my email and the code sent to it, read from Mailpit by the scenario. | now |
 | 5 | player | I sign out, and my token is refused. | now |
-| 6 | operator | I add a player to a group on the command line, `python -m game auth access members add`, and the player has its permission on its next call, without signing in again. | now |
+| 6 | operator | I add a player to a group on the command line, `python -m app auth access members add`, and the player has its permission on its next call, without signing in again. | now |
 | 7 | player | My session opened on one process is known to the other, by the cache in Redis. | now |
 | 8 | player | A guest by its device, an email bound later; the profile, the wallet, the leaderboards of the metagame. | later |
 
@@ -71,7 +71,7 @@ against ingot-auth of the same commit. Its layout in ingot-auth:
 
 ```
 examples/game/
-  game/               # GameProject, its units, __main__
+  app/                # AppProject, its units, __main__, as the guides name them
   scenarios/          # unittest cases of the client, their steps
   Dockerfile          # the wheel of dist/, its extras, game/
   docker-compose.yml  # game twice, MongoDB, Redis, Mailpit
@@ -94,12 +94,12 @@ image, `docker compose up`, the scenarios, `down`; `lint` takes
 The project, as the guides of the addons tell it:
 
 ```python
-class GameProject(AuthProject, GrpcProject, MongoDbProject, RedisProject):
-    settings = Slot(GameSettingsUnit)  # the configs of the five joined
-    logging = Slot(GameLoggingUnit)
-    mail = Slot(GameMailUnit)          # AiosmtplibMailer
-    grpc = Slot(GameGrpcUnit)          # the bindings of the player
-    auth = Slot(GameAuthUnit)          # MongoDB, Redis, the two methods
+class AppProject(AuthProject, GrpcProject, MongoDbProject, RedisProject):
+    settings = Slot(AppSettingsUnit)  # the configs of the five joined
+    logging = Slot(AppLoggingUnit)
+    mail = Slot(AppMailUnit)          # AiosmtplibMailer
+    grpc = Slot(AppGrpcUnit)          # the bindings of the player
+    auth = Slot(AppAuthUnit)          # MongoDB, Redis, the two methods
 ```
 
 A scenario, its steps plain functions and mixins:
@@ -118,7 +118,7 @@ class SignUpByEmailScenario(GameMixin, unittest.IsolatedAsyncioTestCase):
 
 - The two processes behind one address: a proxy of gRPC in
   `docker-compose.yml`, or the scenario calling each by its port.
-- The operator in the scenarios: `docker compose exec game python -m game
+- The operator in the scenarios: `docker compose exec game python -m app
   ...` from the test, or a step of its own.
 
 ## Slices

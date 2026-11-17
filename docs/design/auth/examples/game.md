@@ -4,8 +4,8 @@
 - Packages: ingot-auth (`examples/game/`); ingot-grpcio, ingot-pymongo,
   ingot-redis, ingot-mail as its extras take them
 - Date: 2026-11-17
-- ADRs: [0016](../../adr/0016-run-the-addons-in-examples.md),
-  [0012](../../adr/0012-design-a-feature-before-building-it.md)
+- ADRs: [0016](../../../adr/0016-run-the-addons-in-examples.md),
+  [0012](../../../adr/0012-design-a-feature-before-building-it.md)
 
 ## Problem
 
@@ -44,6 +44,15 @@ alone, to see the integration from an application.
 | 8 | player | A guest by its device, an email bound later; the profile, the wallet, the leaderboards of the metagame. | later |
 | 9 | author of ingot-auth | At the cut of a release I run the load on the dev server, the candidate against the release before it, one after the other on the same machine: the call with a token, the sign-in by its throughput, the floor of its timing off, the sign-up; p50, p95 and the calls a second of each go into the pull request of the release. Not on the runners of GitHub. The host quiet: the IDE connected to it off, the boost of the CPU off, the application, the servers and the load each on cores of their own, no swap-in during the run; the run refuses to start otherwise, and a run that swapped is void. Each run appends to `examples/game/perf/results.csv` of ingot-auth, a metric a row, in the pull request of the release: the date, the run, the version, its role, candidate or baseline, its commit, the Python and the servers as they ran, the host with its state, the scenario, the clients, the metric and its value; the two of a run compare on any host, the runs over time on the same host alone. | later |
 
+## Coverage of the auth
+
+The scenarios run the stories of the auth its players, its operator and
+its client meet, those built. The stories themselves tell it: the column
+`Coverage` of the tables of [the auth](../README.md) names the
+scenario of each, `test_sessions`, and the slice of the game bringing it
+while it is to come; a story of the composition, the transport or an
+author is proved by the unit tests and the contracts, `unit`.
+
 ## Flows
 
 ```mermaid
@@ -80,7 +89,7 @@ examples/game/
 
 No `pyproject.toml` of its own: the example runs in the environment of
 ingot-auth. Its stack is the extra `game` of ingot-auth, the first half of
-a preset:
+a starter ([auth.1.3](../README.md#auth-1-3)):
 
 ```toml
 game = ["ingot-auth[grpcio,pymongo,redis]", "ingot-mail[aiosmtplib]"]
@@ -131,8 +140,16 @@ class SignUpByEmailScenario(GameMixin, unittest.IsolatedAsyncioTestCase):
    Docker, the first scenario, story 3, `make example-test` and its CI
    job; the ruleset of ingot-auth requiring it, by a script for the user.
 2. Stories 4 and 5: the mail by Mailpit, the sign-out.
-3. Stories 6 and 7: the operator, the second process.
-4. The preset: what the composition of the example shares with any game
-   moves to `ingot_auth.presets.game`, importable with the extra `game`;
-   the example keeps its own, a subclass of the preset and its configs.
-   The second half of the preset, its first consumer the example.
+3. The rest of the player, the stories of the auth marked
+   `game slice 3`: the sessions of the player by
+   `AuthGrpcSessionsBinding`, the metadata, the profile and its hash,
+   what a sign-up and a sign-in refuse.
+4. Stories 6 and 7: the operator and the auditor on the command line,
+   the stories of the auth marked `game slice 4`, the second process;
+   after the command `testing run` of ingots, the scenarios a project of their
+   own ([testing](../../testing/README.md), its slice 2).
+5. The starter, [auth.1.3](../README.md#auth-1-3): what the composition
+   of the example shares with any game moves to
+   `ingot_auth.contrib.starters.game`, importable with the extra `game`;
+   the example keeps its own, a subclass of the starter and its configs.
+   The second half of the starter, its first consumer the example.

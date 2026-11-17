@@ -8,21 +8,21 @@ nickname, normalized to NFKC and case-folded, so that `Alice` is `alice`.
 
 ### 1. Signing up
 
-| # | Actor | Story | Needs | Status |
-|---|---|---|---|---|
-| <a id="nickname-1-1"></a>1.1 | end user | **I sign up with a nickname and a password, in one step.**<br>• The nickname is checked by the group of the policies `policies_sign_up_nickname`, the password by that of the password ([password.2.1](password.md#password-2-1)), both empty unless an application gives policies to them in a subclass.<br>• Example: given a policy of a length of 12 in the group of the password, when alice signs up with `secret`, then `AuthMethodInvalidError` names the field `password` and the policy.<br>• Example: given alice signed up, when `Alice` signs up, then `AuthIdentityConflictError`: the nickname is taken, and told ([methods.4.2](README.md#methods-4-2)). | [methods.3.1](README.md#methods-3-1), [password.1.1](password.md#password-1-1) | Implemented |
+| # | Actor | Story | Needs | Status | Coverage |
+|---|---|---|---|---|---|
+| <a id="nickname-1-1"></a>1.1 | end user | **I sign up with a nickname and a password, in one step.**<br>• The nickname is checked by the group of the policies `policies_sign_up_nickname`, the password by that of the password ([password.2.1](password.md#password-2-1)), both empty unless an application gives policies to them in a subclass.<br>• Example: given a policy of a length of 12 in the group of the password, when alice signs up with `secret`, then `AuthMethodInvalidError` names the field `password` and the policy.<br>• Example: given alice signed up, when `Alice` signs up, then `AuthIdentityConflictError`: the nickname is taken, and told ([methods.4.2](README.md#methods-4-2)). | [methods.3.1](README.md#methods-3-1), [password.1.1](password.md#password-1-1) | Implemented | `test_nickname` |
 
 ### 2. Signing in
 
-| # | Actor | Story | Needs | Status |
-|---|---|---|---|---|
-| <a id="nickname-2-1"></a>2.1 | end user | **I sign in with my nickname and my password, in one step, and get the token at once, or the challenge of my second factor.**<br>• The method verifies the password of the profile of the nickname; a nickname bound to none is verified against the hash of nothing all the same, `AuthMethodRefusedError` in both.<br>• The challenge of a second factor comes with the factors ([factors.1.1](factors.md#factors-1-1)). | [methods.2.2](README.md#methods-2-2), [methods.4.1](README.md#methods-4-1), [password.1.2](password.md#password-1-2) | Implemented |
+| # | Actor | Story | Needs | Status | Coverage |
+|---|---|---|---|---|---|
+| <a id="nickname-2-1"></a>2.1 | end user | **I sign in with my nickname and my password, in one step, and get the token at once, or the challenge of my second factor.**<br>• The method verifies the password of the profile of the nickname; a nickname bound to none is verified against the hash of nothing all the same, `AuthMethodRefusedError` in both.<br>• The challenge of a second factor comes with the factors ([factors.1.1](factors.md#factors-1-1)). | [methods.2.2](README.md#methods-2-2), [methods.4.1](README.md#methods-4-1), [password.1.2](password.md#password-1-2) | Implemented | `test_nickname` |
 
 ### 3. Binding
 
-| # | Actor | Story | Needs | Status |
-|---|---|---|---|---|
-| <a id="nickname-3-1"></a>3.1 | end user | **Signed up by my email, a code or a provider, I add a nickname to my profile, and sign in by it with my password.**<br>• A nickname needs no verification, only to be free ([methods.2.5](README.md#methods-2-5)): the bind is of one step, and a nickname taken is told, as on a sign-up, the caller signed in already.<br>• It opens a way to sign in: by the nickname and the password of the profile, once the profile has one ([password.1.3](password.md#password-1-3)).<br>• It opens no second factor: nothing is sent to a nickname.<br>• Example: given alice signed up by `email_code`, with a password set, when she binds `alice`, then she signs in by `alice` and her password as well. | [methods.5.1](README.md#methods-5-1), [password.1.2](password.md#password-1-2) | Draft |
+| # | Actor | Story | Needs | Status | Coverage |
+|---|---|---|---|---|---|
+| <a id="nickname-3-1"></a>3.1 | end user | **Signed up by my email, a code or a provider, I add a nickname to my profile, and sign in by it with my password.**<br>• A nickname needs no verification, only to be free ([methods.2.5](README.md#methods-2-5)): the bind is of one step, and a nickname taken is told, as on a sign-up, the caller signed in already.<br>• It opens a way to sign in: by the nickname and the password of the profile, once the profile has one ([password.1.3](password.md#password-1-3)).<br>• It opens no second factor: nothing is sent to a nickname.<br>• Example: given alice signed up by `email_code`, with a password set, when she binds `alice`, then she signs in by `alice` and her password as well. | [methods.5.1](README.md#methods-5-1), [password.1.2](password.md#password-1-2) | Draft | — |
 
 ## Flows
 

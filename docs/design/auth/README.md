@@ -14,14 +14,21 @@ implemented once built; the rest waits as drafts.
 
 ## How to read it
 
-- **A story** is a row of a table, `# | Actor | Story | Needs | Status`: the
-  story bold, then what it takes, the rules, the examples (given, when,
-  then); `Needs` gives the stories it stands on, directly.
+- **A story** is a row of a table,
+  `# | Actor | Story | Needs | Status | Coverage`: the story bold, then
+  what it takes, the rules, the examples (given, when, then); `Needs`
+  gives the stories it stands on, directly.
 - **Its id** is the file and its number, `sessions.2.1`; the README of a
   directory is named by it, `auth.1.1`, `methods.4.1`. A link to a story of
   another file names the whole id, one within the file the number.
 - **Its status**: `Draft`, written, not taken; `Accepted`, taken for the next
   slice; `Implemented`, in the code of `main`.
+- **Its coverage**, the last column: what proves it as its actor meets it.
+  A scenario of `examples/game` of ingot-auth, `test_sign_out`, run against
+  the application in Docker ([the game](examples/game.md)), with the slice
+  of the game that brings it while it is to come; `unit` for a story the
+  unit tests and the contracts prove, of the composition, the transport,
+  an author, or out of the game by its reason; `—` while not built.
 - **A question** is in the file it is of, naming the stories it holds:
   those of the next slice are listed below, the others parked till their
   slice comes.
@@ -50,6 +57,8 @@ implemented once built; the rest waits as drafts.
 | [sign-out.md](sign-out.md) | How a session ends by a user or an operator, and a block |
 | [access.md](access.md) | What a caller may do: the permissions, the users and the groups |
 | [profile.md](profile.md) | What the auth knows of a user: the tags, the attributes, the permissions, and the profile a client sees; its version and history; its data by the GDPR |
+| [activity.md](activity.md) | What changed, by whom and when: the activity log of the auth, read by the auditors |
+| [examples/game.md](examples/game.md) | The example of an application of the auth, `examples/game` of ingot-auth: the backend of a game, its scenarios proving the stories end to end, the column `Coverage` |
 
 ## The concept
 
@@ -121,11 +130,11 @@ attempt in [methods](methods/README.md#domain).
 
 What a client and an application see and pick before anything.
 
-| # | Actor | Story | Needs | Status |
-|---|---|---|---|---|
-| <a id="auth-1-1"></a>1.1 | client | **I load the metadata of the auth to learn which methods I can sign up and sign in by, so that I show the user those and no others.**<br>• The metadata of the profiles and of the sessions is there, their registries, and that of the methods with them.<br>• The metadata lists the methods in the slots of the methods of the application, whatever they are: a method of the core or one of the application's own, each by its name, the path of its slot, with the flows open by it ([methods.1.2](methods/README.md#methods-1-2)). It knows no method of the core by itself: they are a catalogue, bound by the application ([methods.1.1](methods/README.md#methods-1-1)) (the user, 2026-11-04).<br>• A method opens the flows it takes by its hooks, `_get_sign_up_enabled`, `_get_sign_in_enabled`, closed in the base: a flow it does not take is listed closed, the client needs no more (the user, 2026-11-05).<br>• Example: given the nickname method bound with its sign-up closed, and the `email_code` one not bound, a client reads `[{name: nickname, sign_up: false, sign_in: true}]`: the nickname is there, its sign-up closed for now.<br>• The client calls a method by its own typed service (`Nickname.SignIn`): the list tells only which are there. | [methods.1.1](methods/README.md#methods-1-1) | Implemented |
-| <a id="auth-1-2"></a>1.2 | client | **The metadata gives the policies a method checks, the length of a password, so that I check a form before sending it.**<br>• Abandoned (the user, 2026-11-11): a policy is an operation, reading what the server keeps, the history of a password, which is not for a client, nor its config to read in place of it. A client learns every policy broken at once, from the error of the start ([password.2.1](methods/password.md#password-2-1)); a check without the flow, a dry run, if a client ever needs one. | [1.1](#auth-1-1) | Abandoned |
-| <a id="auth-1-3"></a>1.3 | application | **I import one starter that suits me, `game` or `web`, instead of a dozen classes to pick and subclass, and override only what differs.**<br>• `contrib/starters/`, a flat list, each units an application inherits and overrides, picking the methods and the strategies, or the storage, the cache and the transport too, under an extra of its own when it needs libraries; not "presets", which ingot-auth has twice already.<br>• Its worth grows with all that is bound by hand (the user, 2026-11-04): the methods, the configs of each, their servicers, the strategies of the sessions, of the timing, of the second factor. A starter binds them once, as they go together, and the creation of the project checks it as any application.<br>• Example: given `class AppAuth(AuthWebStarter)`, the application has the sign-up by `email_code`, the sign-in by `nickname` and `email_code`, a sliding month, the oldest session evicted, overriding only the slot of the mail. | [access.1.1](access.md#access-1-1), [sessions.3.1](sessions.md#sessions-3-1), [sessions.3.3](sessions.md#sessions-3-3) | Draft |
+| # | Actor | Story | Needs | Status | Coverage |
+|---|---|---|---|---|---|
+| <a id="auth-1-1"></a>1.1 | client | **I load the metadata of the auth to learn which methods I can sign up and sign in by, so that I show the user those and no others.**<br>• The metadata of the profiles and of the sessions is there, their registries, and that of the methods with them.<br>• The metadata lists the methods in the slots of the methods of the application, whatever they are: a method of the core or one of the application's own, each by its name, the path of its slot, with the flows open by it ([methods.1.2](methods/README.md#methods-1-2)). It knows no method of the core by itself: they are a catalogue, bound by the application ([methods.1.1](methods/README.md#methods-1-1)) (the user, 2026-11-04).<br>• A method opens the flows it takes by its hooks, `_get_sign_up_enabled`, `_get_sign_in_enabled`, closed in the base: a flow it does not take is listed closed, the client needs no more (the user, 2026-11-05).<br>• Example: given the nickname method bound with its sign-up closed, and the `email_code` one not bound, a client reads `[{name: nickname, sign_up: false, sign_in: true}]`: the nickname is there, its sign-up closed for now.<br>• The client calls a method by its own typed service (`Nickname.SignIn`): the list tells only which are there. | [methods.1.1](methods/README.md#methods-1-1) | Implemented | `test_metadata`, game slice 3 |
+| <a id="auth-1-2"></a>1.2 | client | **The metadata gives the policies a method checks, the length of a password, so that I check a form before sending it.**<br>• Abandoned (the user, 2026-11-11): a policy is an operation, reading what the server keeps, the history of a password, which is not for a client, nor its config to read in place of it. A client learns every policy broken at once, from the error of the start ([password.2.1](methods/password.md#password-2-1)); a check without the flow, a dry run, if a client ever needs one. | [1.1](#auth-1-1) | Abandoned | — |
+| <a id="auth-1-3"></a>1.3 | application | **I import one starter that suits me, `game` or `web`, instead of a dozen classes to pick and subclass, and override only what differs.**<br>• `contrib/starters/`, a flat list, each units an application inherits and overrides, picking the methods and the strategies, or the storage, the cache and the transport too, under an extra of its own when it needs libraries; not "presets", which ingot-auth has twice already.<br>• Its worth grows with all that is bound by hand (the user, 2026-11-04): the methods, the configs of each, their servicers, the strategies of the sessions, of the timing, of the second factor. A starter binds them once, as they go together, and the creation of the project checks it as any application.<br>• Example: given `class AppAuth(AuthWebStarter)`, the application has the sign-up by `email_code`, the sign-in by `nickname` and `email_code`, a sliding month, the oldest session evicted, overriding only the slot of the mail. | [access.1.1](access.md#access-1-1), [sessions.3.1](sessions.md#sessions-3-1), [sessions.3.3](sessions.md#sessions-3-3) | Draft | `examples/game` composed by it, game slice 5 |
 
 ## Flows
 

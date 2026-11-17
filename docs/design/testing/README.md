@@ -166,4 +166,4 @@ None for now.
 2. ingots: `TestingProject`, `TestingUnit`, `RunTestsCommand`, stories
    4, 5, 8; their first consumer `examples/game/scenarios`, a project
    with the client of ingot-grpcio.
-3. Then the slice 3 of the game: the operator and the second process.
+3. Then the slice 4 of the game: the operator and the second process.

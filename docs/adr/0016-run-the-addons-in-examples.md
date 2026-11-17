@@ -72,8 +72,8 @@ Option 3.
     dependents of ADR 0008 run the checks of the feature addon;
   - its code is checked by the lint of the addon and stays out of its
     coverage and its wheel;
-  - it is the first consumer of the preset of the addon for its kind of
-    application: an extra named by the kind, `ingot-auth[game]`, the
+  - it is the first consumer of the starter of the addon for its kind
+    of application: an extra named by the kind, `ingot-auth[game]`, the
     stack the image installs, then the composition the example shares
     with any such application, moved into the package under that extra.
 - **An application of several feature addons**: `examples/<name>/` of the
@@ -88,8 +88,8 @@ Option 3.
 
 - A change that breaks an application is found in its own pull request,
   not by the first application of a user.
-- The presets of a feature addon grow out of its examples: the
-  composition an application writes today is what its preset writes for
+- The starters of a feature addon grow out of its examples: the
+  composition an application writes today is what its starter writes for
   it tomorrow.
 - The design of a feature has a living consumer next to its prototype.
 
@@ -110,6 +110,8 @@ Option 3.
 - [ADR 0008](0008-move-dependents-along-the-tree.md): the tree of the
   dependents.
 - [ADR 0012](0012-design-a-feature-before-building-it.md): an example of an
-  application is designed first, `docs/design/<application>/`.
-- [The design of the game](../design/game/README.md): the first one, in
-  ingot-auth.
+  application is designed first, in the design of the addon it shows,
+  `docs/design/<addon>/examples/<application>.md`, one of several
+  feature addons in `docs/design/<application>/`.
+- [The design of the game](../design/auth/examples/game.md): the first
+  one, in ingot-auth.

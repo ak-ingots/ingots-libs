@@ -300,7 +300,13 @@ the order of `Needs`: a slice takes no story before those it needs.
    profile, sweeps, by the CLI and gRPC. Built by ingot-auth#66,
    revoke-all, and #67, the sweep, its job the caller `auth.system`;
    released as 0.5.0.
-7. [sessions.3.3](sessions.md#sessions-3-3): the limit of the sessions.
+7. [sessions.3.3](sessions.md#sessions-3-3): the limit of the sessions,
+   how many a config of the operator, what over it a strategy of the
+   application, the prototype [limit](limit/) running it: a sign-in
+   evicting the one seen longest ago in its transaction, or refused; the
+   game evicting, three a player till a web example takes the sets of
+   sessions ([the game](examples/game.md#slices)). Breaking, the slot
+   `limit` with no default: 0.8.0.
 8. [auth.1.3](#auth-1-3): the first starter, `web`, out of what the slices
    above built; the tests of the slices then bind it.
 9. The MongoDB backends of the sessions, with the profiles and identities

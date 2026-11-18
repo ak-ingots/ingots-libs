@@ -153,3 +153,12 @@ class SignUpByEmailScenario(GameMixin, unittest.IsolatedAsyncioTestCase):
    `ingot_auth.contrib.starters.game`, importable with the extra `game`;
    the example keeps its own, a subclass of the starter and its configs.
    The second half of the starter, its first consumer the example.
+
+With slice 7 of the auth, the limit of the sessions,
+[sessions.3.3](../sessions.md#sessions-3-3), the game evicts the session
+seen longest ago, `APP_AUTH_SESSIONS_MAX=3` in its compose, a scenario of
+`test_sessions` evicting by the fourth sign-in. Three, not the one session
+a player of a real game keeps: the sets of sessions of a player, listed and
+revoked, have no other application to be tested by yet (the user,
+2026-11-18). Once a web example comes, the game keeps one and those
+scenarios move to the web.

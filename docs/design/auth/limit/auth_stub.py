@@ -52,8 +52,8 @@ class AuthSessionsLimitError(Exception):
     """A sign-in refused: the profile has as many open sessions as allowed."""
 
     @classmethod
-    def for_max(cls, uid: str, count: int) -> t.Self:
-        return cls(f"profile {uid!r} has {count} open sessions, the limit", uid)
+    def for_count(cls, count: int) -> t.Self:
+        return cls(f"as many open sessions as allowed: {count}", count)
 
 
 # the configs: the operator of the application sets them, the env of ingots
@@ -87,6 +87,7 @@ class AuthStorage(Entity):
         self.sessions[session.uid] = session
 
     async def get_open(self, profile_uid: str) -> tuple[AuthSessionRecord, ...]:
+        """In no order: the fastest a backend gives them."""
         return tuple(
             session
             for session in self.sessions.values()
@@ -152,11 +153,9 @@ class AuthSlidingLifetime(Entity):
 
 class BaseAuthSessionsLimit(Entity):
     """
-    Makes room for a session a sign-in opens, in its transaction: the open
-    sessions of the profile the lifetime tells expired closed with their
-    reason, then, as many as ``AUTH_SESSIONS_MAX`` left, those the strategy
-    picks evicted, or the sign-in refused; gives the sessions it closed, so
-    that the cache forgets them after the commit.
+    What a sign-in does to the open sessions of a profile before it opens
+    one; gives the sessions it closed, so that the cache forgets them after
+    the commit.
     """
 
     parent: "AuthSessionsUnit"
@@ -165,70 +164,84 @@ class BaseAuthSessionsLimit(Entity):
     async def make_room(
         self, uid: str, metadata: OperationMetadata
     ) -> tuple[AuthSessionRecord, ...]:
+        return await self._make_room(uid, metadata)
+
+    @abc.abstractmethod
+    async def _make_room(
+        self, uid: str, metadata: OperationMetadata
+    ) -> tuple[AuthSessionRecord, ...]:
+        raise NotImplementedError
+
+
+class AuthNoLimit(BaseAuthSessionsLimit):
+    """As many sessions as the users open: none read, none closed."""
+
+    @t.override
+    async def _make_room(
+        self, uid: str, metadata: OperationMetadata
+    ) -> tuple[AuthSessionRecord, ...]:
+        return ()
+
+
+class BaseAuthMaxSessionsLimit(BaseAuthSessionsLimit):
+    """
+    ``AUTH_SESSIONS_MAX`` open sessions, at least one: the expired ones
+    taking no room, over the limit those the strategy picks evicted, or the
+    sign-in refused.
+    """
+
+    @t.override
+    async def _make_room(
+        self, uid: str, metadata: OperationMetadata
+    ) -> tuple[AuthSessionRecord, ...]:
         auth = self.parent.parent
         now = self.parent.get_now()
-        closed = []
-        alive = []
-        for session in await auth.storage.get_open(uid):
-            status = self.parent.lifetime.check(session, now)
-            if status is None:
-                alive.append(session)
-                continue
-            await auth.storage.close(session.uid, status)
-            await auth.activities.record(
-                session.uid, "expire", metadata, context={"reason": status.value}
-            )
-            closed.append(session)
+        sessions = await auth.storage.get_open(uid)
         # at least one, the session the sign-in opens
         limit = max(self.project.configs.AUTH_SESSIONS_MAX, 1)
+        if len(sessions) < limit:
+            return ()
+        # the expired take no room: their requests and the sweep close them
+        alive = tuple(s for s in sessions if self.parent.lifetime.check(s, now) is None)
         excess = len(alive) - limit + 1
-        if excess > 0:
-            alive.sort(key=lambda session: session.seen_at)
-            for session in self._select_evicted(uid, tuple(alive), excess):
-                await auth.storage.close(session.uid, AuthSessionStatus.EVICTED)
-                await auth.activities.record(session.uid, "evict", metadata)
-                closed.append(session)
+        if excess <= 0:
+            return ()
+        closed = []
+        for session in self._select_evicted(alive, excess):
+            await auth.storage.close(session.uid, AuthSessionStatus.EVICTED)
+            await auth.activities.record(session.uid, "evict", metadata)
+            closed.append(session)
         return tuple(closed)
 
     @abc.abstractmethod
     def _select_evicted(
-        self, uid: str, alive: tuple[AuthSessionRecord, ...], excess: int
+        self, alive: tuple[AuthSessionRecord, ...], excess: int
     ) -> Sequence[AuthSessionRecord]:
         """
-        The sessions to evict, of those alive, seen longest ago first, at
-        least ``excess`` of them; or raises to refuse the sign-in.
+        The sessions to evict, of those alive, in no order, at least
+        ``excess`` of them; or raises to refuse the sign-in.
         """
         raise NotImplementedError
 
 
-class AuthEvictOldestLimit(BaseAuthSessionsLimit):
+class AuthEvictOldestLimit(BaseAuthMaxSessionsLimit):
     """The sessions seen longest ago signed out: a later sign-in wins."""
 
     @t.override
     def _select_evicted(
-        self, uid: str, alive: tuple[AuthSessionRecord, ...], excess: int
+        self, alive: tuple[AuthSessionRecord, ...], excess: int
     ) -> Sequence[AuthSessionRecord]:
-        return alive[:excess]
+        return sorted(alive, key=lambda session: session.seen_at)[:excess]
 
 
-class AuthRefuseLimit(BaseAuthSessionsLimit):
+class AuthRefuseLimit(BaseAuthMaxSessionsLimit):
     """The sign-in refused: the user signs out of another first."""
 
     @t.override
     def _select_evicted(
-        self, uid: str, alive: tuple[AuthSessionRecord, ...], excess: int
+        self, alive: tuple[AuthSessionRecord, ...], excess: int
     ) -> Sequence[AuthSessionRecord]:
-        raise AuthSessionsLimitError.for_max(uid, len(alive))
-
-
-class AuthNoLimit(BaseAuthSessionsLimit):
-    """As many sessions as the users open; ``AUTH_SESSIONS_MAX`` unread."""
-
-    @t.override
-    def _select_evicted(
-        self, uid: str, alive: tuple[AuthSessionRecord, ...], excess: int
-    ) -> Sequence[AuthSessionRecord]:
-        return ()
+        raise AuthSessionsLimitError.for_count(len(alive))
 
 
 class AuthSessionsUnit(Unit):

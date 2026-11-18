@@ -63,17 +63,18 @@ async def main() -> None:
     assert auth.storage.sessions["s2"].status is AuthSessionStatus.EVICTED
     assert statuses(project).count("open") == 3
 
-    # an expired one closed by the sign-in with its reason, no room taken
+    # an expired one takes no room, left to its request and the sweep
     see(project, "s1", 2)
     await auth.sign_in("alice")
-    assert auth.storage.sessions["s1"].status is AuthSessionStatus.EXPIRED_IDLE
+    assert auth.storage.sessions["s1"].status is AuthSessionStatus.OPEN
     assert auth.storage.sessions["s3"].status is AuthSessionStatus.OPEN
-    assert auth.storage.activities[-2].context == {"reason": "expired_idle"}
+    assert "expire" not in [r.action for r in auth.storage.activities]
 
-    # the operator lowers the limit: the next sign-in evicts down to it
+    # the operator lowers the limit: the next sign-in evicts down to it,
+    # the expired one aside
     project.configs.AUTH_SESSIONS_MAX = 1
     await auth.sign_in("alice")
-    assert statuses(project).count("open") == 1
+    assert statuses(project).count("open") == 2  # s1 expired, the new one
 
     # a web application refuses instead: the user signs out of another
     class RefusingSessions(AuthSessionsUnit):
@@ -112,7 +113,9 @@ async def main() -> None:
     free.configs.AUTH_SESSIONS_MAX = 1
     for _ in range(3):
         await free.auth.sign_in("alice")
-    assert statuses(free) == ["open", "open", "open"]
+    see(free, "s1", 2)  # expired: no sign-in reads it, its request closes it
+    await free.auth.sign_in("alice")
+    assert statuses(free) == ["open", "open", "open", "open"]
 
 
 asyncio.run(main())

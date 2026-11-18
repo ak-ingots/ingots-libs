@@ -34,6 +34,10 @@ async def main() -> None:
         assert configs.PERF_ROUNDS == 3 and configs.PERF_GROUPS == (1, 3), configs
         assert configs.PERF_SCENARIO == "get-own-profile"
 
+        # the plan of the runner: the configs resolved, for its eval
+        plan = profile.plan().splitlines()
+        assert "PERF_GROUPS='1 3'" in plan and "PERF_ROUNDS=3" in plan, plan
+
         # the seed: through the API, rows of a dataclass, read back typed
         await profile.seed()
         with open(f"{work}/seed.csv", newline="") as file:

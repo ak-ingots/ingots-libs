@@ -13,6 +13,7 @@ import contextlib
 import csv
 import dataclasses
 import importlib.util
+import shlex
 import statistics
 import tempfile
 import time
@@ -231,6 +232,16 @@ class PerfUnit[R](Unit):
             raise SmokeFailedError(f"{configs.PERF_SCENARIO}: {failed or 'no call'}")
         path = Path(configs.PERF_REPORTS, "dry", configs.PERF_SCENARIO, f"{configs.PERF_RUN}.csv")
         self.report.append(path, self._measure(recorder, 1, min_calls=1))
+
+    def plan(self) -> str:
+        """The configs of a run resolved, for the shell of the runner: ``eval``."""
+        configs = self._configs
+        lines = []
+        for name in t.get_type_hints(PerfConfigs):
+            value = getattr(configs, name)
+            text = " ".join(map(str, value)) if isinstance(value, tuple) else str(value)
+            lines.append(f"{name}={shlex.quote(text)}")
+        return "\n".join(lines)
 
     def analyze(self, path: Path) -> list[str]:
         return self.analysis.analyze(self.report.read(path))

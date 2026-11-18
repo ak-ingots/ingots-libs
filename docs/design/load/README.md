@@ -57,7 +57,7 @@ runner of its own, and the runner changes with no release of ingots.
 | 5 | author of an addon | A client of the load, a `LoadClient`, is a user of the application, an instance a client: its set-up unmeasured, then its `run()` again and again, what it measures named by it, `async with self.measure("get-own-profile")`; its project the `PerfProject`, its client that of ingot-grpcio. | now |
 | 6 | author of an addon | A group, a `LoadGroup[Row]`, is the clients that meet, one of each class of its `clients`, `(Inviter, Invitee)`, a class twice for two, and what they share, typed: the row of the seed, the state its subclass declares, set up by its `asyncSetUp()` before the clients, and a time one starts and another finishes, `self.group.start("invite", key)`, `finish("invite", key)`, measured as an action; a client is typed by its group, `LoadClient[PerfProject, DuelGroup]`; a group runs in one process of the load. | now |
 | 7 | author of an addon | The configuration has two levels, those of every project: the files, `perf.ini` of the stand, then `scenarios/<name>.ini` of the scenario if any, give the defaults, the command line overrides them, `--config PERF_DURATION=60`; the configs are `PERF_*` of `PerfConfigs` and those the scenario declares, its parameters. | now |
-| 8 | author of an addon | The commands of the unit, against a target up: `seed`, its rows into `seed.csv`; `point`, the processes of the load started, warmed up, measured, merged, the rows appended to the report of the run; `load`, a process of a point; `analyze`, a report compared by its roles; `smoke`, a point dry. | now |
+| 8 | author of an addon | The commands of the unit, against a target up: `seed`, its rows into `seed.csv`; `point`, the processes of the load started, warmed up, measured, merged, the rows appended to the report of the run; `load`, a process of a point; `analyze`, a report compared by its roles; `smoke`, a point dry; `plan`, the configs of a run resolved, `PERF_*` a line each, `NAME=value` quoted for the shell, a list its items apart by spaces, so that the runner takes them by `eval` and parses no file. | now |
 | 9 | author of an addon | A point keeps, by each action, the calls, the calls a second, p50, p95, p99, the errors by their codes; by the point, the CPU of every service, given by its cgroup, and of the backend a call, the CPU of the load, and why it is void. | now |
 | 10 | author of an addon | A run is a report of its own, in `reports/<scenario>/` of the stand, `<date>-<time>-<host>.csv` and `.ini`: the CSV the data alone, the role, the round, the action, the groups, the metric, its value; the INI the run, the host and its state, the Python and the servers, each role with its ref and commit, and the configs resolved, by which the run is repeated. | now |
 | 11 | author of an addon | `analyze` compares the candidate with the baseline by the median of the rounds, and marks a change beyond the spread of the rounds; a scenario overrides it, and the report, by the slots of its unit. | now |
@@ -115,6 +115,8 @@ runner of its own, and the runner changes with no release of ingots.
 - Rule: the window of a point over, its clients are cancelled, those
   waiting on a rival too; a call ending after the window is not
   measured.
+- Rule: `PERF_GROUPS` is a list of any length, a `ListConfig` of ingots,
+  its items of one type: `[1, 256]` as `[1, 2, 4, 8, 16]`.
 - Rule: a point is void when its load took over 0.9 of its cores, the
   host swapped in, it measured fewer than 20 calls, or a check of the
   host failed during it; what the runner finds, it tells `point`.
@@ -301,8 +303,10 @@ make perf-smoke                  # in CI, after its compose up
 ```
 
 `make perf` calls `../perf/run $(STAND) $(SCENARIO) $(ARGS)` of the meta
-repository: the host checked by `pyperf system show`, then for each
-round and role the worktree of its ref, `docker compose up` of the
+repository: the configs of the run taken from `plan`, `eval "$(python
+-m ingots.perf <module> plan --configs-file ...)"`, the files read and
+their order kept by the project alone; the host checked by `pyperf
+system show`, then for each round and role the worktree of its ref, `docker compose up` of the
 example and the stand, `seed`, `point` for each value of `PERF_GROUPS`
 under `systemd-run --scope -p AllowedCPUs=$PERF_LOAD_CPUS`, `docker
 compose down`; at the end `analyze`. `ARGS` go to every command.
@@ -361,8 +365,9 @@ None for now.
 
 ## Slices
 
-1. ingots: `ingots.perf`, `PerfUnit`, `LoadClient`, `PerfConfigs`, the
-   commands `seed`, `point`, `load`, `smoke`, `CsvReport`, stories 2–10,
+1. ingots: `ListConfig`, a pull request of its own; `ingots.perf`,
+   `PerfUnit`, `LoadGroup`, `LoadClient`, `PerfConfigs`, the commands
+   `seed`, `point`, `load`, `smoke`, `plan`, `CsvReport`, stories 2–10,
    12; its first consumer `examples/perf/game` of ingot-auth, its
    scenarios dry in CI after its compose up.
 2. ingots: `analyze`, `MedianAnalysis`, story 11; ingots-libs: `perf/`,

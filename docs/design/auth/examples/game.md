@@ -42,7 +42,7 @@ alone, to see the integration from an application.
 | 6 | operator | I add a player to a group on the command line, `python -m app auth access members add`, and the player has its permission on its next call, without signing in again. | now |
 | 7 | player | My session opened on one process is known to the other, by the cache in Redis. | now |
 | 8 | player | A guest by its device, an email bound later; the profile, the wallet, the leaderboards of the metagame. | later |
-| 9 | author of ingot-auth | At the cut of a release I run the load on the dev server, the candidate against the release before it, one after the other on the same machine: the call with a token, the sign-in by its throughput, the floor of its timing off, the sign-up; p50, p95 and the calls a second of each go into the pull request of the release. Not on the runners of GitHub. The host quiet: the IDE connected to it off, the boost of the CPU off, the application, the servers and the load each on cores of their own, no swap-in during the run; the run refuses to start otherwise, and a run that swapped is void. Each run appends to `examples/game/perf/results.csv` of ingot-auth, a metric a row, in the pull request of the release: the date, the run, the version, its role, candidate or baseline, its commit, the Python and the servers as they ran, the host with its state, the scenario, the clients, the metric and its value; the two of a run compare on any host, the runs over time on the same host alone. | later |
+| 9 | author of ingot-auth | At the cut of a release I run the load on the dev server, the candidate against the release before it, one after the other on the same machine: the call with a token, the sign-in by its throughput, the floor of its timing off, the sign-up; p50, p95 and the calls a second of each go into the pull request of the release. Not on the runners of GitHub. The host quiet: the IDE connected to it off, the boost of the CPU off, the application, the servers and the load each on cores of their own, no swap-in during the run; the run refuses to start otherwise, and a run that swapped is void. Each run appends to `examples/game/perf/results.csv` of ingot-auth, a metric a row, in the pull request of the release: the date, the run, the version, its role, candidate or baseline, its commit, the Python and the servers as they ran, the host with its state, the scenario, the clients, the metric and its value; the two of a run compare on any host, the runs over time on the same host alone. | now |
 
 ## Coverage of the auth
 
@@ -153,6 +153,38 @@ class SignUpByEmailScenario(GameMixin, unittest.IsolatedAsyncioTestCase):
    `ingot_auth.contrib.starters.game`, importable with the extra `game`;
    the example keeps its own, a subclass of the starter and its configs.
    The second half of the starter, its first consumer the example.
+6. Story 9, the load (the user, 2026-11-18). `make perf BASELINE=X.Y.Z`
+   in ingot-auth, on the dev server alone:
+   - the baseline is built from a git worktree of its tag, with its own
+     code of the game, its `uv.lock`, its Dockerfile, as the API of the
+     game moves with the releases; the candidate from the tree;
+   - the load is a client of Python, `grpc.aio` and the clients of the
+     scenarios, a process of N coroutines, a pool of such processes
+     started by the shell on the cores of the load; it measures its own
+     CPU, and a run whose load saturated its cores is void; its first
+     process reads the CPU of each service from its cgroup in the
+     measured window, the CPU of the backend a call kept by the point;
+   - the clients swept, the whole curve first, `1 ... 256`, then by each
+     scenario the range that tells, `CLIENTS_<SCENARIO>`, past which only
+     the queue grows; each point warmed up 10 seconds, measured 30, the
+     roles alternating, baseline, candidate, three times each, the median
+     kept; a point of fewer than 20 calls void, the errors kept by their
+     codes;
+   - the scenarios of the auth alone, the mail none: a call with a token,
+     `GetOwnProfile`, by players seeded first; the sign-in by a
+     nickname, `AUTH_SIGN_IN_MIN_DURATION=0`, over a pool of players so
+     that the limit of the sessions evicts as in use; the sign-up by a
+     nickname; more later;
+   - the cores by `cpuset` of `perf/docker-compose.perf.yml`: the system
+     on core 0 (cpus 0-1), `app` on core 1, `app2` on core 2, MongoDB, its
+     cache capped, and Redis on core 3, the load on cores 4-5;
+   - the run refuses to start with the boost on, the IDE running, too
+     little memory free; a swap-in during it, by `/proc/vmstat`, voids
+     it; the boost and the EPP are set by a script the user runs as root,
+     `perf-host.sh on|off`;
+   - each point appends its rows to `examples/game/perf/results.csv`,
+     and the run prints p50, p95 and the calls a second of each for the
+     pull request of the release.
 
 With slice 7 of the auth, the limit of the sessions,
 [sessions.3.3](../sessions.md#sessions-3-3), the game evicts the session

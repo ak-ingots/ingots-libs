@@ -306,7 +306,7 @@ the order of `Needs`: a slice takes no story before those it needs.
    evicting the one seen longest ago in its transaction, or refused; the
    game evicting, three a player till a web example takes the sets of
    sessions ([the game](examples/game.md#slices)). Breaking, the slot
-   `limit` with no default: 0.8.0.
+   `limit` with no default: 0.8.0. Built by ingot-auth#83.
 8. [auth.1.3](#auth-1-3): the first starter, `web`, out of what the slices
    above built; the tests of the slices then bind it.
 9. The MongoDB backends of the sessions, with the profiles and identities

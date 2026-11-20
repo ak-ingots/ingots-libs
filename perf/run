@@ -1,0 +1,137 @@
+#!/usr/bin/env bash
+# perf/run <stand> [<scenario>...] [-- <options of ingots.perf>...]: a run
+# of the load of a stand of an addon on the dev server, its candidate
+# against its baseline. A stand is a directory, perf/<stand>/ of
+# the addon: its executable `stand`, its perf.ini, its scenarios/. What is
+# loaded and how is ingots.perf, the scenarios; how the target is brought
+# up and down is the stand's; how a run goes is this runner's, knowing no
+# Docker:
+#
+#   <stand>/stand up TREE        the target of TREE up; prints the configs
+#                                of its points, PERF_CGROUPS, PERF_SERVERS,
+#                                NAME=value quoted for the shell
+#   <stand>/stand down TREE      the target of TREE down, its data too
+#   <stand>/stand perf ARGS...   python -m ingots.perf ARGS as the scenarios
+#                                of the stand import
+#
+# Each scenario, every one of scenarios/ unless named: its configs from
+# `perf plan`, the options after `--` over them; then round after round,
+# the roles alternating, each role up from its tree, the baseline's a
+# worktree of its ref; seeded, its points `perf point` for each of
+# PERF_GROUPS, the load on PERF_LOAD_CPUS; down. At the end, `perf
+# analyze`. The stand of both roles is the candidate's.
+#
+#   TRIAL=1    on a host that is not quiet: the refusals told, the run
+#              marked a trial, its reports in the work of the stand
+set -euo pipefail
+
+meta=$(cd "$(dirname "$0")/.." && pwd)
+[ $# -ge 1 ] || { echo "usage: perf/run <stand> [<scenario>...] [-- <options>...]" >&2; exit 2; }
+stand=$(realpath "$1")
+shift
+names=()
+while [ $# -gt 0 ] && [ "$1" != -- ]; do names+=("$1"); shift; done
+[ "${1:-}" = -- ] && shift
+options=("$@")
+[ ${#names[@]} -gt 0 ] ||
+    names=($(for f in "$stand"/scenarios/*.py; do basename "$f" .py; done))
+export INGOTS_META=$meta
+
+repo=$(git -C "$stand" rev-parse --show-toplevel)
+work=${PERF_HOME:-$HOME/.cache/ingots-perf}/$(basename "$repo")
+mkdir -p "$work"
+
+perf() {  # perf <scenario> <command> [args...]: ingots.perf by the stand
+    local scenario=$1
+    shift
+    "$stand/stand" perf "$stand/scenarios/$scenario.py" \
+        --config IS_PRINT_CONFIGS=off "${options[@]}" perf "$@"
+}
+
+plan() {  # plan <scenario>: its configs into this shell, PERF_*
+    local planned
+    planned=$(perf "$1" plan)
+    eval "$planned"
+}
+
+plan "${names[0]}"
+if ! host_state=$("$meta/perf/check-host" --system-cpus "$PERF_SYSTEM_CPUS"); then
+    [ "${TRIAL:-}" = 1 ] || exit 1
+    echo "TRIAL=1: the run goes on, marked a trial"
+fi
+run=$(date +%Y%m%d-%H%M%S)-$(hostname)
+trial=()
+if [ "${TRIAL:-}" = 1 ]; then
+    run=$run-trial
+    trial=(--config "PERF_REPORTS=$PERF_WORK/reports")
+fi
+echo "run $run of $(basename "$stand") on $host_state"
+
+# the tree of a role: the candidate's, the tree itself or a worktree of
+# its ref; the baseline's, a worktree of its ref, latest the newest vX.Y.Z
+resolve() {
+    local ref=$1
+    if [ "$ref" = latest ]; then
+        ref=$(git -C "$repo" tag --list 'v*' --sort=-v:refname | head -1)
+    fi
+    echo "$ref"
+}
+tree_of() {
+    local ref=$1
+    if [ "$ref" = tree ]; then
+        echo "$repo"
+        return
+    fi
+    local tree=$work/$ref
+    [ -d "$tree" ] || git -C "$repo" worktree add --quiet --detach "$tree" "$ref"
+    echo "$tree"
+}
+commit_of() {
+    local commit
+    commit=$(git -C "$1" rev-parse --short HEAD)
+    [ -z "$(git -C "$1" status --porcelain)" ] || commit=$commit-dirty
+    echo "$commit"
+}
+
+for name in "${names[@]}"; do
+    plan "$name"
+    baseline=$(resolve "$PERF_BASELINE")
+    candidate=$(resolve "$PERF_CANDIDATE")
+    for round in $(seq "$PERF_ROUNDS"); do
+        for role in baseline candidate; do
+            ref=${!role}
+            tree=$(tree_of "$ref")
+            commit=$(commit_of "$tree")
+            echo "$name, round $round: the $role, $ref at $commit"
+            # down even after an up that failed halfway; up told apart from
+            # its eval, which would hide its failure
+            trap '"$stand/stand" down "$tree"' EXIT
+            told_up=$("$stand/stand" up "$tree")
+            eval "$told_up"
+            told=(
+                --config "PERF_RUN=$run" --config "PERF_ROLE=$role"
+                --config "PERF_ROUND=$round" --config "PERF_REF=$ref"
+                --config "PERF_COMMIT=$commit" --config "PERF_SERVERS=$PERF_SERVERS"
+                --config "PERF_HOST_STATE=$host_state"
+                --config "PERF_CGROUPS=$PERF_CGROUPS" "${trial[@]}"
+            )
+            options_of_run=("${options[@]}")
+            options=("${options_of_run[@]}" "${told[@]}")
+            perf "$name" seed
+            pin=()
+            [ -z "$PERF_LOAD_CPUS" ] || pin=(taskset -c "$PERF_LOAD_CPUS")
+            for groups in $PERF_GROUPS; do
+                "${pin[@]}" "$stand/stand" perf "$stand/scenarios/$name.py" \
+                    --config IS_PRINT_CONFIGS=off "${options[@]}" \
+                    perf point --groups "$groups"
+            done
+            options=("${options_of_run[@]}")
+            "$stand/stand" down "$tree"
+            trap - EXIT
+        done
+    done
+    options_of_run=("${options[@]}")
+    options=("${options[@]}" "${trial[@]}")
+    perf "$name" analyze "$run"
+    options=("${options_of_run[@]}")
+done

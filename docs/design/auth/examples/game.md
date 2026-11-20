@@ -186,6 +186,12 @@ class SignUpByEmailScenario(GameMixin, unittest.IsolatedAsyncioTestCase):
      and the run prints p50, p95 and the calls a second of each for the
      pull request of the release.
 
+   Moved since onto [the load of the ecosystem](../../load/README.md):
+   the stand is `ingot-auth/perf/game` on `ingots.perf`, a report a run
+   in its `reports/`, its first run the rows of `results.csv`; run from
+   the meta repository, `make -C perf run STAND=ingot-auth/perf/game`,
+   the host by `perf/check-host` and `perf/tune-host`.
+
 With slice 7 of the auth, the limit of the sessions,
 [sessions.3.3](../sessions.md#sessions-3-3), the game evicts the session
 seen longest ago, `APP_AUTH_SESSIONS_MAX=3` in its compose, a scenario of

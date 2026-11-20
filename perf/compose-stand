@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+# perf/compose-stand --stand <dir> --example <dir> [--file <compose>]...
+# <command>: a stand of the load in Docker Compose, what the executable
+# `stand` of a stand delegates to; the runner, perf/run, calls `stand`
+# alone, knowing no Docker.
+#
+#   up TREE       the example of TREE, a tree of the repository of the stand,
+#                 built by its `make perf-build` and brought up, its compose
+#                 file with those of --file; prints the configs of its points,
+#                 NAME=value quoted for the shell: PERF_CGROUPS, PERF_SERVERS
+#   down TREE     the example of TREE brought down, its volumes too
+#   perf ARGS...  python -m ingots.perf ARGS, from the example of the
+#                 repository of the stand, so that its packages import; by
+#                 the python of its venv, PERF_PYTHON another
+#
+# --stand is the directory of the stand, --example relative to the root of
+# a tree, --file to the stand; the files take the stand as STAND_DIR, its
+# own files mounted, say, whichever tree the role is of.
+set -euo pipefail
+
+usage="usage: compose-stand --stand <dir> --example <dir> [--file <compose>]... up|down TREE | perf ARGS..."
+stand=
+example=
+files=()
+while [ $# -gt 0 ]; do
+    case $1 in
+        --stand) stand=$(realpath "$2"); shift 2 ;;
+        --example) example=$2; shift 2 ;;
+        --file) files+=("$2"); shift 2 ;;
+        *) break ;;
+    esac
+done
+[ -n "$stand" ] && [ -n "$example" ] && [ $# -ge 1 ] || { echo "$usage" >&2; exit 2; }
+for index in "${!files[@]}"; do files[index]=$stand/${files[index]}; done
+repo=$(git -C "$stand" rev-parse --show-toplevel)
+export STAND_DIR=$stand
+
+compose() {  # compose <tree> <args>...: the example of the tree, the files of the stand
+    docker compose -p "perf-$(basename "$stand")" \
+        -f "$1/$example/docker-compose.yml" "${files[@]/#/--file=}" "${@:2}"
+}
+
+case $1 in
+    up)
+        tree=$2
+        make --no-print-directory -C "$tree" perf-build >/dev/null
+        if ! told=$(compose "$tree" up --build --detach --wait --quiet-pull 2>&1); then
+            echo "$told" | tail -20 >&2
+            compose "$tree" logs --tail 50 >&2
+            exit 1
+        fi
+        cgroups=()
+        for service in $(compose "$tree" ps --services); do
+            id=$(docker inspect --format '{{.Id}}' "$(compose "$tree" ps -q "$service")")
+            cgroups+=("\"$service=/sys/fs/cgroup/system.slice/docker-$id.scope\"")
+        done
+        servers=$(compose "$tree" images --format json | python3 -c '
+import json, sys
+print(" ".join(sorted({i["Repository"] + ":" + i["Tag"] for i in json.load(sys.stdin)})))')
+        IFS=,
+        printf 'PERF_CGROUPS=%q\n' "[${cgroups[*]}]"
+        printf 'PERF_SERVERS=%q\n' "$servers"
+        ;;
+    down)
+        compose "$2" down --volumes --timeout 1 >/dev/null 2>&1
+        ;;
+    perf)
+        shift
+        cd "$repo/$example"
+        exec ${PERF_PYTHON:-"$repo/.venv/bin/python"} -m ingots.perf "$@"
+        ;;
+    *)
+        echo "$usage" >&2
+        exit 2
+        ;;
+esac

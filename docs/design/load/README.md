@@ -2,8 +2,9 @@
 
 - Status: Proposed
 - Packages: ingots (`ingots.perf`, what is loaded and how), ingots-libs
-  (`perf/`, the runner of the dev server), ingot-auth (the game its
-  first stand), ingot-grpcio (`examples/echo/`, its first own stand)
+  (`perf/`, the runner of the dev server and the stand of Compose),
+  ingot-auth (the game its first stand), ingot-grpcio (`examples/echo/`,
+  its first own stand)
 - Date: 2026-11-18
 - ADRs: [0004](../../adr/0004-static-composition-with-typed-slots.md),
   [0012](../../adr/0012-design-a-feature-before-building-it.md),
@@ -41,37 +42,62 @@ point of the load against a target already up, its report and its
 analysis. It assumes nothing of how the target was brought up, on which
 host, in which cores: it is tested by unit tests, with no Docker.
 
+A stand is how the target is brought up and down: its build, its
+services, their cores, what of them a point measures, and how its
+scenarios run, their Python and their directory. It is an executable of
+the stand, `stand`, its contract three commands, its inside anything:
+Compose, processes, a dump restored.
+
 The runner is how a run is carried out on a host: its checks, the roles
-brought up and down, the rounds, the cores. It is outside the framework,
-`perf/` of the meta repository, bash to begin with; another host gets a
-runner of its own, and the runner changes with no release of ingots.
+and their trees, the rounds, the cores of the load. It knows no Docker:
+it calls `stand` and the commands of the scenarios through it. It is
+outside the framework, `perf/` of the meta repository, bash to begin
+with; another host gets a runner of its own, and the runner changes with
+no release of ingots.
+
+```python
+def run(stand, scenario):            # the runner, roughly
+    check_host()
+    plan = stand.perf(scenario, "plan")
+    for round in plan.rounds:
+        for role in ("baseline", "candidate"):
+            try:
+                services = stand.up(worktree(role))   # down a half up too
+                stand.perf(scenario, "seed")
+                for groups in plan.groups:
+                    pinned(stand.perf(scenario, "point", groups, services))
+            finally:
+                stand.down(worktree(role))
+    stand.perf(scenario, "analyze")
+```
 
 ## Stories
 
 | # | Actor | Story | Now or later |
 |---|---|---|---|
-| 1 | author of an addon | A stand is a directory, `examples/perf/<stand>/`, an addon having as many as it wants, the same example in another topology or under other scenarios: its `perf.ini`, its `scenarios/`, its `reports/`, its `docker-compose.perf.yml`. | now |
-| 2 | author of an addon | A scenario is a module of the stand, `scenarios/<name>.py`, a project of its own, `PerfProject`, a subclass of the project of the client it loads, the scenarios project of the example, with the unit `perf` of `ingots.perf`: its configs, its logging, its client, its report and its analysis overridden there as any project overrides an addon. | now |
-| 3 | author of an addon | The unit `perf`, a subclass of `PerfUnit[Row]`, names the group of the scenario, `group = DuelGroup`, a `LoadGroup[Row]`, and what it seeds, `_seed()`: the data the scenario needs ahead, made through the API of the application by its client, not written into its storages, so that it is what the application writes, the same for both roles whatever their storages keep. | now |
-| 4 | author of an addon | `seed` writes the rows `_seed()` returns, dataclasses of the type of the unit, `Player(nickname, token)`, into `seed.csv`, their fields its header; `point` reads them back by the annotations of the fields, and group `i` of a point takes row `i` in turn, its clients reading it as `self.group.seeded`. A scenario that seeds nothing, the echo, has no file. | now |
+| 1 | author of an addon | A stand is a directory, `perf/<stand>/`, an addon having as many as it wants, the same example in another topology or under other scenarios: its executable `stand`, its `perf.ini`, its `scenarios/`, its `reports/`, and what its `stand` brings the target up by, `docker-compose.perf.yml`. | now |
+| 1a | author of an addon | `stand` is the contract of a stand with the runner: `stand up TREE` builds the target of a tree of the repository and brings it up, printing what its points tell, `PERF_CGROUPS` and `PERF_SERVERS`, `NAME=value` quoted for the shell; `stand down TREE` brings it down with its data; `stand perf ARGS` runs `python -m ingots.perf ARGS` as its scenarios import, from the directory of the example. A stand of Compose delegates to `perf/compose-stand` of the meta repository, its example and its files named; another writes its own. | now |
+| 2 | author of an addon | A scenario is a module of the stand, `scenarios/<name>.py`, a project of its own, `PerfProject`, a subclass of the project of the client it loads, the scenarios project of the example or the project of the stand over it, `project.py` beside `scenarios/`, the base its scenarios share, with the unit `perf` of `ingots.perf`: its configs, its logging, its client, its report and its analysis overridden there as any project overrides an addon. | now |
+| 3 | author of an addon | The unit `perf`, a subclass of `PerfUnit[Row]`, names the group of the scenario, `group = DuelGroup`, a `LoadGroup[Row]`, and what it seeds, its slot `seed`, a `CsvSeed[Row]` whose `_make()` makes the rows: the data the scenario needs ahead, made through the API of the application by its client, not written into its storages, so that it is what the application writes, the same for both roles whatever their storages keep. | now |
+| 4 | author of an addon | `seed` writes the rows `_make()` returns, dataclasses of the type of the unit, `Player(nickname, token)`, into `seed.csv`, their fields its header; `point` reads them back by the annotations of the fields, and group `i` of a point takes row `i` in turn, its clients reading it as `self.group.seeded`. A scenario that seeds nothing, the echo, has no file. | now |
 | 5 | author of an addon | A client of the load, a `LoadClient`, is a user of the application, an instance a client: its set-up unmeasured, then its `run()` again and again, what it measures named by it, `async with self.measure("get-own-profile")`; its project the `PerfProject`, its client that of ingot-grpcio. | now |
 | 6 | author of an addon | A group, a `LoadGroup[Row]`, is the clients that meet, one of each class of its `clients`, `(Inviter, Invitee)`, a class twice for two, and what they share, typed: the row of the seed, the state its subclass declares, set up by its `asyncSetUp()` before the clients, and a time one starts and another finishes, `self.group.start("invite", key)`, `finish("invite", key)`, measured as an action; a client is typed by its group, `LoadClient[PerfProject, DuelGroup]`; a group runs in one process of the load. | now |
-| 7 | author of an addon | The configuration has two levels, those of every project: the files, `perf.ini` of the stand, then `scenarios/<name>.ini` of the scenario if any, give the defaults, the command line overrides them, `--config PERF_DURATION=60`; the configs are `PERF_*` of `PerfConfigs` and those the scenario declares, its parameters. | now |
-| 8 | author of an addon | The commands of the unit, against a target up: `seed`, its rows into `seed.csv`; `point`, the processes of the load started, warmed up, measured, merged, the rows appended to the report of the run; `load`, a process of a point; `analyze`, a report compared by its roles; `smoke`, a point dry; `plan`, the configs of a run resolved, `PERF_*` a line each, `NAME=value` quoted for the shell, a list its items apart by spaces, so that the runner takes them by `eval` and parses no file. | now |
+| 7 | author of an addon | The configuration has two levels, those of every project: the files, `perf.ini` of the stand, then `scenarios/<name>.ini` of the scenario if any, found by `ingots.perf` beside the module, give the defaults, the command line overrides them, `--config PERF_DURATION=60`; the configs are `PERF_*` of `PerfConfigs` and those the scenario declares, its parameters. | now |
+| 8 | author of an addon | The commands of the unit, its slots `cmd_*`, against a target up: `seed`, its rows into `seed.csv`; `point`, the processes of the load started, warmed up, measured, merged, the rows appended to the report of the run; `load`, a process of a point; `analyze`, a report compared by its roles; `smoke`, a point dry; `plan`, the configs of a run resolved, `PERF_*` a line each, `NAME=value` quoted for the shell, a list its items apart by spaces, so that the runner takes them by `eval` and parses no file. | now |
 | 9 | author of an addon | A point keeps, by each action, the calls, the calls a second, p50, p95, p99, the errors by their codes; by the point, the CPU of every service, given by its cgroup, and of the backend a call, the CPU of the load, and why it is void. | now |
 | 10 | author of an addon | A run is a report of its own, in `reports/<scenario>/` of the stand, `<date>-<time>-<host>.csv` and `.ini`: the CSV the data alone, the role, the round, the action, the groups, the metric, its value; the INI the run, the host and its state, the Python and the servers, each role with its ref and commit, and the configs resolved, by which the run is repeated. | now |
 | 11 | author of an addon | `analyze` compares the candidate with the baseline by the median of the rounds, and marks a change beyond the spread of the rounds; a scenario overrides it, and the report, by the slots of its unit. | now |
-| 12 | CI | `smoke`, against the example CI brought up: no warmup, a group, a run of each client; `seed` and `point` in a directory of its own, its report in `reports/dry/`, ignored by git; it fails when an action made no call or met an error the scenario does not expect. The CI of every addon with a stand runs it, `make perf-smoke`. | now |
-| 13 | author of an addon | The runner, `make perf STAND=examples/perf/game`, carries a run out on the dev server: it checks and tunes the host, brings each role up and down, rounds after rounds, calls `seed` and `point` of each scenario, then `analyze`. | now |
+| 12 | CI | `smoke`, against the example CI brought up: no warmup, a group, a run of each client; in its process alone, its report in `reports/dry/`, ignored by git; it fails when an action made no call or met an error the scenario does not expect. The CI of every addon with a stand runs it, `make perf-smoke`. | now |
+| 13 | author of an addon | The runner, `make -C perf run STAND=ingot-auth/perf/game` of the meta repository, carries a run out on the dev server: it checks and tunes the host, brings each role up and down by `stand`, rounds after rounds, calls `seed` and `point` of each scenario through it, then `analyze`. | now |
 | 14 | author of an addon | The baseline and the candidate are each a git ref, a tag, a branch, a commit, or `latest`, the newest `vX.Y.Z`, the default of the baseline, so that at the cut of a release the candidate meets the release before it with no edit; the candidate the tree by default. The runner brings a ref up from its worktree, and tells `point` the ref as given and the commit it resolved to, `-dirty` for a tree with changes. | now |
-| 15 | author of an addon | The cores are written once: those of the services in `docker-compose.perf.yml`, their `cpuset`, those of the load and of the system in `PERF_LOAD_CPUS`, `PERF_SYSTEM_CPUS`; the runner starts `point` in a scope of systemd on the cores of the load, its processes inheriting them, and gives it the cgroups of the services. | now |
-| 16 | dev server | The runner refuses a host that is not quiet: the boost, the IDE, Claude Code off the cores of the system, the memory, the swap; `pyperf system` tunes the host and tells how it stands. | now |
-| 17 | author of ingot-grpcio | Its example, `examples/echo/`, and its stand load an echo through the servicer of ingot-grpcio, a failure mapped by its policy, and the same echo on grpcio alone, the floor, a service of its own on the same cores. | now |
+| 15 | author of an addon | The cores are written once: those of the services by the stand, in `docker-compose.perf.yml`, their `cpuset`, those of the load and of the system in `PERF_LOAD_CPUS`, `PERF_SYSTEM_CPUS`; the runner starts `point` on the cores of the load, its processes inheriting them, and gives it the cgroups of the services `stand up` told. | now |
+| 16 | dev server | The runner refuses a host that is not quiet: the boost, the IDE, Claude Code off the cores of the system, the memory, the swap; `perf/tune-host` tunes the host, `perf/check-host` tells how it stands. | now |
+| 17 | author of ingot-grpcio | Its example, `examples/echo/`, and its stand load an echo through the servicer of ingot-grpcio, a failure mapped by its policy, and the same echo on grpcio alone, the floor, of the stand, not of the example: its server and its client, a service in the image of the application of the role, on cores of its own. | now |
 | 18 | author of a feature addon | The numbers of two stands compare on one host: the same cores, Python, client and clients. | now |
 | 19 | author of an addon | A point profiled: `py-spy` records a service in the measured window, its flame graph beside the report. | later |
 | 20 | author of an addon | The transport checked by a client without the GIL, `ghz`, against the client of the stand. | later |
 | 21 | author of ingot-pymongo, ingot-redis | Their examples, a query, a get and a set, loaded alike. | later |
-| 22 | author of an addon | A scenario seeds a volume the API makes too slowly, a million profiles to load a query by, through the storage of the addon, `_seed()` overridden so. | later |
+| 22 | author of an addon | A scenario seeds a volume the API makes too slowly, a million profiles to load a query by, through the storage of the addon, `_make()` of its seed so. | later |
 
 ## Rules and examples
 
@@ -87,8 +113,10 @@ runner of its own, and the runner changes with no release of ingots.
 - Rule: the data of a seed is of one role and round: the runner brings
   each role down with its volumes, so a token seeded in the baseline is
   nothing to the candidate; `seed.csv` is made again each time, in the
-  directory of the run, `PERF_WORK`, out of the repository, holding
-  tokens; `PERF_SEED_FILE` names another.
+  work of the stand, `PERF_WORK`, `work/` ignored by git, holding tokens;
+  `PERF_SEED_FILE` names another.
+- Rule: a relative path of the configs, `PERF_WORK`, `PERF_SEED_FILE`,
+  `PERF_REPORTS`, is of the stand, whichever directory runs it.
   - Example: 256 players seeded through the API of the game take two
     minutes and more, a password hashed twice each; it is paid once a
     role and round, not once a point.
@@ -102,13 +130,16 @@ runner of its own, and the runner changes with no release of ingots.
   are its size: `--groups 4` of
   the group of `clients = (Inviter, Invitee)` is 8 clients. `point` spreads the groups
   over its processes, never a group over two.
-- Rule: the stand of a run, `perf.ini`, `scenarios/` and the compose file
-  of the stand, is that of the candidate for both roles, so that their
-  cores and their client are one; each role brings only its example,
-  from its own tree.
+- Rule: the stand of a run, `stand`, `perf.ini`, `scenarios/` and the
+  compose file of the stand, is that of the candidate for both roles, so
+  that their cores and their client are one; each role brings only its
+  example, from its own tree, `stand up TREE`.
   - Example: a scenario of the candidate calls an RPC the baseline has
     not; the baseline errs at it, and the analysis marks the point of
     the candidate alone, not a regression.
+- Rule: the runner knows of a stand only `stand`; a stand needing
+  another order, two targets, a dump, changes its `stand`, not the
+  runner.
 - Rule: numbers subtract only from the same host, cores, Python and
   client, and only as costs: the latency at one client, the CPU of the
   backend a call at the saturation; the latencies past it are queues.
@@ -118,8 +149,8 @@ runner of its own, and the runner changes with no release of ingots.
 - Rule: `PERF_GROUPS` is a list of any length, a `ListConfig` of ingots,
   its items of one type: `[1, 256]` as `[1, 2, 4, 8, 16]`.
 - Rule: a point is void when its load took over 0.9 of its cores, the
-  host swapped in, it measured fewer than 20 calls, or a check of the
-  host failed during it; what the runner finds, it tells `point`.
+  host swapped in, or it measured fewer than 20 calls; `point`
+  reads the CPU of its processes and the swap of the host itself.
 - Rule: the time of a run is in the name of its report, written by the
   run: git keeps no time of a file, and that of a commit is when it was
   committed, changed by a rebase too.
@@ -135,6 +166,8 @@ ingot-auth/examples/
     game/                        # the application: compose, scenarios
     perf/
         game/                    # the game as it runs
+            stand                # up, down, perf: the contract
+            project.py           # the project of the stand, its scenarios' base
             perf.ini
             docker-compose.perf.yml
             scenarios/
@@ -153,7 +186,6 @@ ingot-auth/examples/
 `--configs-file` of every project (story 7, 14, 15):
 
 ```ini
-PERF_EXAMPLE = ../../game
 PERF_BASELINE = latest           ; a ref: v0.8.0, main, 9b8892d
 PERF_CANDIDATE = tree
 PERF_ROUNDS = 3
@@ -163,14 +195,13 @@ PERF_LOAD_PROCS = 4
 PERF_LOAD_CPUS = 8-11
 PERF_SYSTEM_CPUS = 0-1
 PERF_GROUPS = [1, 2, 4, 8, 16]
-PERF_WORK = ~/.cache/ingot-auth/perf   ; seed.csv, the parts of a point
 ```
 
-`scenarios/get-own-profile.py`, a scenario on the scenarios project of
-the game (story 2–5):
+`project.py`, the project of the stand over the scenarios project of
+the game, what its scenarios share (story 2–4):
 
 ```python
-from ingots.perf import LoadClient, PerfConfigs, PerfUnit
+from ingots.perf import CsvSeed, PerfConfigs
 from ingots.puer import Slot
 from scenarios.project import ScenariosConfigs, ScenariosProject
 from scenarios.project import ScenariosSettingsUnit
@@ -179,14 +210,33 @@ from scenarios.project import ScenariosSettingsUnit
 class GamePerfConfigs(ScenariosConfigs, PerfConfigs): ...
 
 
-class GamePerfSettings(ScenariosSettingsUnit):
+class GamePerfSettingsUnit(ScenariosSettingsUnit):
     configs = Slot(GamePerfConfigs)
+
+
+class GamePerfProject(ScenariosProject):
+    settings = Slot(GamePerfSettingsUnit)
 
 
 @dataclasses.dataclass
 class SeededPlayer:                              # a row of seed.csv
     nickname: str
     token: str
+
+
+class PlayersSeed(CsvSeed[SeededPlayer]):
+    project: "GamePerfProject"
+
+    async def _make(self, groups: int) -> list[SeededPlayer]:
+        return [await sign_up_and_in(self.project) for _ in range(groups)]
+```
+
+`scenarios/get-own-profile.py`, a scenario on it (story 2–5):
+
+```python
+from ingots.perf import LoadClient, LoadGroup, PerfUnit
+from ingots.puer import Slot
+from project import GamePerfProject, PlayersSeed, SeededPlayer
 
 
 class Player(LoadClient["PerfProject", "PlayerGroup"]):
@@ -205,15 +255,11 @@ class PlayerGroup(LoadGroup[SeededPlayer]):
 
 
 class OwnProfilePerf(PerfUnit[SeededPlayer]):
-    project: "PerfProject"                       # its project, as a unit narrows it
     group = PlayerGroup
-
-    async def _seed(self, groups: int) -> list[SeededPlayer]:
-        return [await sign_up_and_in(self.project) for _ in range(groups)]
+    seed = Slot(PlayersSeed)
 
 
-class PerfProject(ScenariosProject):
-    settings = Slot(GamePerfSettings)
+class PerfProject(GamePerfProject):
     perf = Slot(OwnProfilePerf)
 ```
 
@@ -270,46 +316,55 @@ The slots of `PerfUnit`, each a strategy with a working default:
 
 | Slot | Default | What it does |
 |---|---|---|
+| `seed` | `CsvSeed` | makes the rows of the seed, none by default, writes and reads `seed.csv` |
 | `report` | `CsvReport` | appends the rows of a point to the CSV, writes the INI of a run |
 | `analysis` | `MedianAnalysis` | compares the roles of a report |
 
-The commands, `python -m ingots.perf <module> <command>`: `ingots.perf`
-loads the module by its path, not as a package, so that it does not
-shadow the package `scenarios` of the example, and runs its
-`PerfProject`:
+The commands, `python -m ingots.perf <module> [options] perf
+<command>`: `ingots.perf` loads the module by its path, not as a
+package, so that it does not shadow the package `scenarios` of the
+example, the stand joining the end of the path of imports, `project.py`
+importing; finds its configs files beside it, and runs its `PerfProject`:
 
 ```sh
-S=examples/perf/game
-python -m ingots.perf $S/scenarios/get-own-profile.py seed \
-    --configs-file $S/perf.ini \
-    --config PERF_WORK=~/.cache/ingot-auth/perf      # writes seed.csv there
-python -m ingots.perf $S/scenarios/get-own-profile.py point \
-    --configs-file $S/perf.ini --config PERF_WORK=~/.cache/ingot-auth/perf \
-    --groups 8 --config PERF_RUN=20261118-174448-bee \
-    --config PERF_ROLE=baseline --config PERF_ROUND=1 ...
-python -m ingots.perf $S/scenarios/get-own-profile.py analyze \
-    $S/reports/get-own-profile/20261118-174448-bee
-python -m ingots.perf $S/scenarios/get-own-profile.py smoke \
-    --configs-file $S/perf.ini
+S=$PWD/perf/game; cd examples/game          # as the stand runs it
+python -m ingots.perf $S/scenarios/get-own-profile.py perf seed   # work/seed.csv
+python -m ingots.perf $S/scenarios/get-own-profile.py \
+    --config PERF_RUN=20261118-174448-bee --config PERF_ROLE=baseline \
+    --config PERF_ROUND=1 ... perf point --groups 8
+python -m ingots.perf $S/scenarios/get-own-profile.py perf analyze \
+    20261118-174448-bee                       # reports/get-own-profile/
+python -m ingots.perf $S/scenarios/get-own-profile.py perf smoke
 ```
 
-The runner, in the repository of the addon:
+The runner, from the meta repository, where it lives; an addon keeps
+`perf-build`, what its stand builds a role by, and `perf-smoke`, which
+needs no meta repository:
 
 ```sh
-make perf STAND=examples/perf/game
-make perf STAND=examples/perf/game SCENARIO=duel \
+make -C perf run STAND=ingot-auth/perf/game
+make -C perf run STAND=ingot-auth/perf/game SCENARIOS=duel \
     ARGS="--config PERF_BASELINE=v0.7.1 --config DUEL_THINK_MS=0"
-make perf-smoke                  # in CI, after its compose up
+make perf-smoke                  # in the addon, in CI, after its compose up
 ```
 
-`make perf` calls `../perf/run $(STAND) $(SCENARIO) $(ARGS)` of the meta
-repository: the configs of the run taken from `plan`, `eval "$(python
--m ingots.perf <module> plan --configs-file ...)"`, the files read and
-their order kept by the project alone; the host checked by `pyperf
-system show`, then for each round and role the worktree of its ref, `docker compose up` of the
-example and the stand, `seed`, `point` for each value of `PERF_GROUPS`
-under `systemd-run --scope -p AllowedCPUs=$PERF_LOAD_CPUS`, `docker
-compose down`; at the end `analyze`. `ARGS` go to every command.
+`make -C perf run` calls `perf/run <stand> $(SCENARIOS) -- $(ARGS)`: the configs of the run taken from `plan`, `eval "$(stand
+perf <module> plan)"`, the files read and their order kept by the
+project alone; the host checked, then for each round and role the
+worktree of its ref, `eval "$(stand up <tree>)"`, `seed`, `point` for each
+value of `PERF_GROUPS` on `PERF_LOAD_CPUS`, `stand down <tree>`; at the
+end `analyze`. `ARGS` go to every command.
+
+`stand` of the game, the stand of Compose of the meta repository given
+its example and its file:
+
+```sh
+#!/usr/bin/env bash
+here=$(cd "$(dirname "$0")" && pwd)
+meta=${INGOTS_META:-$(git -C "$here" rev-parse --show-toplevel)/..}
+exec "$meta/perf/compose-stand" --stand "$here" --example examples/game \
+    --file docker-compose.perf.yml "$@"
+```
 
 The prototype, [`perf/`](perf/), runs a stand of two scenarios against a
 game in memory: the configs of the files and the command line, the seed
@@ -318,13 +373,23 @@ clients of a group, the analysis, a dry point, a module refused;
 `mistakes.py` holds what mypy refuses: an action not named by a `str`,
 a field the row has not, a state of another group, a client of another
 group among the clients of a group, what is no client among them, a
-group of the rows of another seed, a seed of another type.
+group of the rows of another seed, a seed of another type. It keeps
+the first shape of the design, the seed `_seed()` of the unit; the code
+made it `CsvSeed` in the slot `seed`, as this text tells.
 
 ## Alternatives
 
 - The runner in `ingots.perf`, Docker, git and systemd driven from
   Python: assumptions of a host in a library, not testable without them;
   the framework says what and how to load, the runner how to run it.
+- One runner bringing every stand up by Compose, reading the example of
+  the stand from its `perf.ini`: a stand of another shape, two targets, a
+  dump, a process off Docker, would grow flags in the runner for each;
+  the runner calls `stand`, and a stand is what it needs.
+- Hooks of a stand around the steps of one runner: the same runner with
+  its order fixed, the flags moved into files.
+- `stand` a project of ingots, its steps slots: kept for when a stand
+  outgrows a script; the contract does not change.
 - A stand of its own, configured by its own file: a second way to
   configure, to override, to log; a project is what every addon already
   is.
@@ -368,13 +433,13 @@ None for now.
 1. ingots: `ListConfig`, a pull request of its own; `ingots.perf`,
    `PerfUnit`, `LoadGroup`, `LoadClient`, `PerfConfigs`, the commands
    `seed`, `point`, `load`, `smoke`, `plan`, `CsvReport`, stories 2–10,
-   12; its first consumer `examples/perf/game` of ingot-auth, its
+   12; its first consumer `perf/game` of ingot-auth, its
    scenarios dry in CI after its compose up.
 2. ingots: `analyze`, `MedianAnalysis`, story 11; ingots-libs: `perf/`,
    the runner in bash, stories 1, 13–16; the game moved onto both, its
    stand of bash in ingot-auth removed, its first `results.csv` split
    into the report of its first run; a run of 0.8.0 against itself
    matching it.
-3. ingot-grpcio: `examples/echo/`, `examples/perf/echo/`, stories 17,
+3. ingot-grpcio: `examples/echo/`, `perf/echo/`, stories 17,
    18; its first run beside the game.
 4. Later: py-spy, ghz, the storages and the cache.

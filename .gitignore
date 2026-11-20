@@ -12,6 +12,7 @@
 /.claude/*
 !/.claude/settings.json
 !/scripts/
+!/perf/
 !/hooks/
 !/docs/
 

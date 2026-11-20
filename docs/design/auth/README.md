@@ -239,6 +239,35 @@ Of this file: none now.
 
 Those the next slice, 4, needs answered: none now.
 
+## OWASP
+
+The stories checked against the cheat sheets of OWASP (2026-11-20):
+[Authentication](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html),
+[Password Storage](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html),
+[Session Management](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html),
+[Forgot Password](https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html),
+[Multifactor Authentication](https://cheatsheetseries.owasp.org/cheatsheets/Multifactor_Authentication_Cheat_Sheet.html),
+[Credential Stuffing Prevention](https://cheatsheetseries.owasp.org/cheatsheets/Credential_Stuffing_Prevention_Cheat_Sheet.html).
+
+| OWASP | Built | To build |
+|---|---|---|
+| The storage of a password | scrypt of OWASP, the PHC format, a compare in constant time | the hashers, their cost, the rehash ([password.1.6](methods/password.md#password-1-6)) |
+| The strength of a password | the policies as operations, no rule of composition | the length and the leaked ones ([password.2.4](methods/password.md#password-2-4)) |
+| The messages and the timing | one reply, the dummy hash, the floor ([methods.4.2](methods/README.md#methods-4-2)) | the same for the recovery and the ban |
+| The throttle | the answers of an attempt limited | the ban by the identifier ([methods.4.3](methods/README.md#methods-4-3)) |
+| The change of a password, the re-authentication | — | [password.1.4](methods/password.md#password-1-4), [sessions.4.1](sessions.md#sessions-4-1) |
+| The recovery of a password | — | [password.3.1](methods/password.md#password-3-1) |
+| The second factor | — | TOTP, the codes of recovery, the failure told ([factors](methods/factors.md)) |
+| The session: its token, its expiry, the logout | 256 random bits kept hashed; idle and absolute; revoked on the server; the own sessions listed and closed; the record | — |
+| The notifications | — | [sessions.3.8](sessions.md#sessions-3-8) |
+| The change of an email, the federation | — | [methods.5.1](methods/README.md#methods-5-1) |
+
+Out of the addon: the cookies, the browser, the TLS, of the client and the
+transport; the CAPTCHA, the fingerprints of a device or a connection, the
+reputation of an IP, of the infrastructure in front, as the floods are
+([how to read it](#how-to-read-it)). Not taken: the security questions,
+which OWASP and NIST reject.
+
 ## Slices
 
 The implementation, a pull request a slice, each with its first consumer, in
@@ -313,20 +342,43 @@ the order of `Needs`: a slice takes no story before those it needs.
    still waiting for theirs. No story of its own: the stories above on
    another backend.
 
+The slices of OWASP ([below](#owasp)), taken before 8 and 9, in this
+order (the user, 2026-11-20):
+
+10. [password.1.6](methods/password.md#password-1-6): the hashers in the
+    slot `hasher`, their cost by configs, the rehash at a sign-in; the
+    cost of the game's stand by those configs. Breaking, the attributes
+    `SCRYPT_*` of `AuthPassword` gone: a minor release.
+11. [password.2.4](methods/password.md#password-2-4): the policies of
+    OWASP, the length in the core, the leaked passwords an extra.
+12. [sessions.4.1](sessions.md#sessions-4-1),
+    [password.1.4](methods/password.md#password-1-4),
+    [sessions.3.8](sessions.md#sessions-3-8): the fresh proof, the change
+    of the password, its mail the first of the notifications.
+13. [password.3.1](methods/password.md#password-3-1): the recovery of the
+    password by a code by mail.
+14. [methods.4.3](methods/README.md#methods-4-3): the ban of an identifier
+    after its failures.
+15. [factors.1.1](methods/factors.md#factors-1-1),
+    [1.3](methods/factors.md#factors-1-3)–[1.6](methods/factors.md#factors-1-6):
+    the second factor, TOTP first, the codes of recovery, the failure told,
+    the change of a factor.
+16. [methods.5.1](methods/README.md#methods-5-1),
+    [factors.1.2](methods/factors.md#factors-1-2): the bind, the change of
+    an email, the code by mail as a factor; the providers after it.
+
 Later, each in a slice of its own once its needs are built:
 [methods.2.5](methods/README.md#methods-2-5),
 [3.2](methods/README.md#methods-3-2),
-[4.3](methods/README.md#methods-4-3),
-[5.1](methods/README.md#methods-5-1),
 [5.2](methods/README.md#methods-5-2);
-[password.1.3](methods/password.md#password-1-3)–[1.5](methods/password.md#password-1-5),
+[password.1.3](methods/password.md#password-1-3),
+[1.5](methods/password.md#password-1-5),
 [2.2](methods/password.md#password-2-2), [2.3](methods/password.md#password-2-3);
 [nickname.3.1](methods/nickname.md#nickname-3-1);
 [email.1.1](methods/email.md#email-1-1), [2.1](methods/email.md#email-2-1),
 [3.1](methods/email.md#email-3-1);
 [email-code.2.2](methods/email-code.md#email-code-2-2),
 [3.1](methods/email-code.md#email-code-3-1);
-[factors.1.1](methods/factors.md#factors-1-1)–[1.3](methods/factors.md#factors-1-3);
 [access.1.2](access.md#access-1-2), [3.1](access.md#access-3-1);
 [sessions.3.6](sessions.md#sessions-3-6),
 [3.7](sessions.md#sessions-3-7);

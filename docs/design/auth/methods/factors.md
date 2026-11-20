@@ -9,9 +9,15 @@ on its sign-up or its bind ([methods.2.5](README.md#methods-2-5)): a factor
 proves who signs in, every time.
 
 - **A code by mail**, once the profile has an email bound.
-- **A code by SMS**, once it has a phone bound; how secure that is, is
-  another talk.
-- **A code of an authenticator app**, TOTP, once the user enrolled it.
+- **A code by SMS**, once it has a phone bound; a restricted authenticator
+  of NIST, not for an application of value, as OWASP says: SIM swap,
+  interception, the cost of the messages.
+- **A code of an authenticator app**, TOTP, once the user enrolled it: the
+  first OWASP offers, of the standard library, `hmac`.
+
+The code by mail is the weakest: a mailbox is guarded by the same password
+as often as not. A passkey, WebAuthn, resists phishing as none of these
+does: an extra of its own, after TOTP, its library not of the standard one.
 
 A factor has the shape of a method of two steps, `start` and `answer`, but
 confirms a profile known, by its uid, instead of finding one. The code by
@@ -24,7 +30,10 @@ mail and the `email_code` method share the mail of the code, built by
 |---|---|---|---|---|---|
 | <a id="factors-1-1"></a>1.1 | end user | **After my password, the sign-in asks for my second factor, if I turned one on.**<br>• The flow, once the profile is found and may sign in, asks the strategy in the slot `second_factor` of the sign-in whether this profile, by this method, needs a factor and which; the factors are entities in the slot `factors`, `email_code`, `phone_code`, `totp`.<br>• `AuthNoSecondFactor`, none; `AuthProfileSecondFactor`, the factor the user turned on, none for the methods of a code. No default, as every strategy.<br>• The factor starts, the flow keeps an attempt waiting for it, and the client gets a challenge, as from a method of two steps; the answer goes to the factor by the attempt, `SignIn.AnswerSignIn` ([methods.2.2](README.md#methods-2-2)).<br>• Example: given alice with the code by mail on, when she signs in by nickname and password, then the reply is a challenge of 6 digits, the mail brings the code, and her answer opens the session. | [methods.4.1](README.md#methods-4-1) | Draft | — |
 | <a id="factors-1-2"></a>1.2 | end user | **I turn on the code by mail, or by SMS, as my second factor, once that email or phone is bound to my profile.** | [1.1](#factors-1-1), [methods.5.1](README.md#methods-5-1) | Draft | — |
-| <a id="factors-1-3"></a>1.3 | end user | **I enroll an authenticator app: the secret shown as a QR code, confirmed by its first code.** | [1.1](#factors-1-1), [sessions.2.2](../sessions.md#sessions-2-2) | Draft | — |
+| <a id="factors-1-3"></a>1.3 | end user | **I enroll an authenticator app: the secret shown as a QR code, confirmed by its first code.**<br>• TOTP of RFC 6238, a step of 30 seconds, 6 digits: the step of now and the one before it accepted, no wider; a code accepted once, the last step accepted kept and moved in the transaction of the answer, so that a code seen is not replayed.<br>• The secret encrypted in the storage, by a key of the application out of it, decrypted for a verification only; shown once, at the enrollment, never again; a leak of the storage asks for a new enrollment, a change of the password does not.<br>• The enrollment takes a fresh proof ([sessions.4.1](../sessions.md#sessions-4-1)) and gives the codes of recovery ([1.4](#factors-1-4)). | [1.1](#factors-1-1), [sessions.2.2](../sessions.md#sessions-2-2) | Draft | — |
+| <a id="factors-1-4"></a>1.4 | end user | **My phone lost, I sign in by a code of recovery I kept, given when I turned my factor on.**<br>• A set of codes, ten, single use each, kept as their hashes, shown once; a new set drops the old; the user told when few are left.<br>• A code of recovery answers the challenge of a factor in its place; an operator resets the factor of a profile otherwise, by the proof its business asks for, recorded. | [1.1](#factors-1-1) | Draft | — |
+| <a id="factors-1-5"></a>1.5 | end user | **The right password given but my factor failed: I am told, as the password is known to someone.**<br>• A mail with the time, the device, the place, and to change the password ([sessions.3.8](../sessions.md#sessions-3-8)); the answers of the factor limited as those of a code, `AUTH_ATTEMPT_MAX_FAILURES`; another factor of the profile offered.<br>• A wrong password tells nothing, as OWASP says. | [1.1](#factors-1-1) | Draft | — |
+| <a id="factors-1-6"></a>1.6 | end user | **I change or turn off my factor, proving it by a factor I have.**<br>• A fresh proof by an enrolled factor, not by the session alone ([sessions.4.1](../sessions.md#sessions-4-1)); the user told by mail of every change; no fallback to a weaker factor than the one turned off, but by the operator. | [1.2](#factors-1-2), [1.3](#factors-1-3) | Draft | — |
 
 ## Flows
 
@@ -51,6 +60,7 @@ sequenceDiagram
 ## Questions
 
 1. <a id="factors-q1"></a>Parked. Do the sign-up and the bind ask for a
-   factor too, the bind of a new email after the password, say? And the
-   codes of recovery, when the phone is lost? Holds [1.1](#factors-1-1),
-   later.
+   factor too, the bind of a new email after the password, say? The bind
+   takes a fresh proof ([sessions.4.1](../sessions.md#sessions-4-1)), a
+   factor among its credentials; the codes of recovery are
+   [1.4](#factors-1-4). Holds [1.1](#factors-1-1), later.

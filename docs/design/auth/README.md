@@ -345,10 +345,12 @@ the order of `Needs`: a slice takes no story before those it needs.
 The slices of OWASP ([below](#owasp)), taken before 8 and 9, in this
 order (the user, 2026-11-20):
 
-10. [password.1.6](methods/password.md#password-1-6): the hashers in the
-    slot `hasher`, their cost by configs, the rehash at a sign-in; the
-    cost of the game's stand by those configs. Breaking, the attributes
-    `SCRYPT_*` of `AuthPassword` gone: a minor release.
+10. [password.1.6](methods/password.md#password-1-6): the hashers, entities
+    of an algorithm each, the default in the slot `hasher_default`, the
+    others verifying in `hasher_*`, their cost by their class, the rehash
+    at a sign-in; the game hashing at 2¹⁴, `p = 5`. Breaking, the slot
+    `hasher_default` with no default, the attributes `SCRYPT_*` of
+    `AuthPassword` moved to the hasher: a minor release. Built.
 11. [password.2.4](methods/password.md#password-2-4): the policies of
     OWASP, the length in the core, the leaked passwords an extra.
 12. [sessions.4.1](sessions.md#sessions-4-1),

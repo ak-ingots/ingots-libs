@@ -7,4 +7,5 @@ ingot-grpcio
 ingot-pymongo
 ingot-redis
 ingot-mail
+ingot-starlette
 ingot-auth

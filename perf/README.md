@@ -31,6 +31,13 @@ and how: `ingots.perf` of ingots.
 <stand>/stand perf ARGS...   # python -m ingots.perf ARGS as its scenarios import
 ```
 
+`PERF_SERVERS` tells the services of a role as they ran, a service each,
+`name=image@id #digest`, the digest of its configuration of Compose, the
+path of the tree left out; it goes into the `[role ...]` sections of the
+report. `run` compares the roles by it: a service whose configuration
+differs, or whose image of no build does, is told before the analysis, its
+numbers not comparing, as `cpu_ms_per_call` sums every service.
+
 ## A run
 
 From the root of the meta repository, the stand named from it:

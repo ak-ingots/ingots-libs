@@ -95,7 +95,15 @@ contract.
    profiles in `contrib/transports/grpcio/profile/`, as a storage keeps its own in
    `contrib/storages/<backend>/profile/`. The contract is not of the contrib: the
    servicers import it from the tree of the core.
-5. `make proto` runs `protoc` over every `.proto` of the package, `-I .`, its
+5. The API of an addon is a package of its own, `api/` (ingot-auth, 2026-11-23):
+   the contract under `ingot_<name>.api.<path>.v<N>`, in
+   `ingot_<name>/api/<path>/v<N>/<service>.proto`, the tree of `api/` that of the
+   subdomains of the core, beside the RPCs of each service as mixins of no
+   transport in its `rpcs.py`; the transports mix them in. The path of 1 gets
+   `api` in its middle; the domain of the permissions of 3 does not: `auth.profiles.tags`
+   for `ingot_auth.api.profiles.tags.v1`. A change of the contract goes in the steps
+   of [ADR 0017](0017-change-an-api-by-its-consumers.md).
+6. `make proto` runs `protoc` over every `.proto` of the package, `-I .`, its
    output into `.`, and nothing after it. The core imports no module of a
    contract: they need protobuf, of the extra of the transport, as the contrib
    does. The tools of the package, the formatter, the linters, the coverage and

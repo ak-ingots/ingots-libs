@@ -108,12 +108,14 @@ Decided in [docs/adr](docs/adr/README.md); the essentials:
   `make dep-behind` who is behind, `make dep-next` what can move now,
   `make dep-try OF=<package>` runs the dependents.
 - An addon shipping a gRPC contract puts a service of a subdomain into the package
-  `ingot_<name>.<path>.v<N>` and the file `ingot_<name>/<path>/v<N>/<service>.proto`,
+  `ingot_<name>.api.<path>.v<N>` and the file
+  `ingot_<name>/api/<path>/v<N>/<service>.proto`,
   at that path in its own package, its code generated next to it and imported
   as `protoc` writes it, its contrib following the subdomains of the core
   (0009, 0011); an RPC is named as Google AIP names
   methods, a verb then its subject, `ListTags(ListTagsRequest)`, within what
-  Buf `STANDARD` passes (0013).
+  Buf `STANDARD` passes (0013); an API changed by one breaking release while no
+  consumer is out of the ecosystem, else in steps (0017).
 - Documentation: the meta repository lives on GitHub only. Packages publish
   Sphinx docs on Read the Docs: `ingots` is the parent project
   (`https://ingots.readthedocs.io/`), every addon a subproject under it

@@ -8,6 +8,7 @@
 #                 built by its `make perf-build` and brought up, its compose
 #                 file with those of --file; prints the configs of its points,
 #                 NAME=value quoted for the shell: PERF_CGROUPS, PERF_SERVERS
+#                 (a service each: name=image@id #digest of its configuration)
 #   down TREE     the example of TREE brought down, its volumes too
 #   perf ARGS...  python -m ingots.perf ARGS, from the example of the
 #                 repository of the stand, so that its packages import; by
@@ -15,7 +16,8 @@
 #
 # --stand is the directory of the stand, --example relative to the root of
 # a tree, --file to the stand; the files take the stand as STAND_DIR, its
-# own files mounted, say, whichever tree the role is of.
+# own files mounted or built from, say a floor, whichever tree the role is
+# of.
 set -euo pipefail
 
 usage="usage: compose-stand --stand <dir> --example <dir> [--file <compose>]... up|down TREE | perf ARGS..."
@@ -35,8 +37,12 @@ for index in "${!files[@]}"; do files[index]=$stand/${files[index]}; done
 repo=$(git -C "$stand" rev-parse --show-toplevel)
 export STAND_DIR=$stand
 
+# the project of Compose by the repository and the stand, its images too,
+# perf-ingot-grpcio-demo: stands of one name in two repositories apart
+project=perf-$(basename "$repo")-$(basename "$stand")
+
 compose() {  # compose <tree> <args>...: the example of the tree, the files of the stand
-    docker compose -p "perf-$(basename "$stand")" \
+    docker compose -p "$project" \
         -f "$1/$example/docker-compose.yml" "${files[@]/#/--file=}" "${@:2}"
 }
 
@@ -50,13 +56,27 @@ case $1 in
             exit 1
         fi
         cgroups=()
+        images=()
         for service in $(compose "$tree" ps --services); do
-            id=$(docker inspect --format '{{.Id}}' "$(compose "$tree" ps -q "$service")")
+            container=$(compose "$tree" ps -q "$service")
+            id=$(docker inspect --format '{{.Id}}' "$container")
             cgroups+=("\"$service=/sys/fs/cgroup/system.slice/docker-$id.scope\"")
+            images+=("$service=$(docker inspect --format '{{.Config.Image}}@{{.Image}}' "$container")")
         done
-        servers=$(compose "$tree" images --format json | python3 -c '
-import json, sys
-print(" ".join(sorted({i["Repository"] + ":" + i["Tag"] for i in json.load(sys.stdin)})))')
+        # a service as it ran: its image, by its id, and its configuration of
+        # Compose by a digest, the path of the tree left out, so that the
+        # roles compare: what differs but the code tells the run apart
+        servers=$(compose "$tree" config --format json | python3 -c '
+import hashlib, json, sys
+tree, images = sys.argv[1], dict(arg.split("=", 1) for arg in sys.argv[2:])
+services = json.loads(sys.stdin.read().replace(tree, "<tree>"))["services"]
+def digest(config):
+    return hashlib.sha256(json.dumps(config, sort_keys=True).encode()).hexdigest()[:12]
+def told(name):
+    image, _, id = images[name].partition("@sha256:")
+    return f"{name}={image}@{id[:12]} #{digest(services[name])}"
+print("; ".join(told(name) for name in sorted(services) if name in images))' \
+            "$(realpath "$tree")" "${images[@]}")
         IFS=,
         printf 'PERF_CGROUPS=%q\n' "[${cgroups[*]}]"
         printf 'PERF_SERVERS=%q\n' "$servers"

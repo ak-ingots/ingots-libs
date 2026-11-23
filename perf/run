@@ -86,6 +86,31 @@ tree_of() {
     [ -d "$tree" ] || git -C "$repo" worktree add --quiet --detach "$tree" "$ref"
     echo "$tree"
 }
+# what tells the roles apart beside their code: a service whose
+# configuration of Compose differs, or whose image of no build differs, as
+# PERF_SERVERS of compose-stand tells them; the code, built, compares by its
+# own refs
+differ() {  # differ <servers of the baseline> <servers of the candidate>
+    python3 - "$1" "$2" <<'PY'
+import sys
+def parse(servers):
+    told = (item.split("=", 1) for item in servers.split("; ") if "=" in item)
+    return {name: rest.split(" #") for name, rest in told}
+baseline, candidate = map(parse, sys.argv[1:])
+for name in sorted(baseline.keys() | candidate.keys()):
+    if name not in baseline or name not in candidate:
+        print(f"{name} (of one role alone)")
+        continue
+    (image, digest), (image_c, digest_c) = baseline[name], candidate[name]
+    whats = []
+    if digest != digest_c:
+        whats.append("its configuration")
+    if image.split("@")[0] == image_c.split("@")[0] and image != image_c and not image.startswith("perf-"):
+        whats.append("its image")
+    if whats:
+        print(f"{name} ({', '.join(whats)})")
+PY
+}
 commit_of() {
     local commit
     commit=$(git -C "$1" rev-parse --short HEAD)
@@ -108,6 +133,7 @@ for name in "${names[@]}"; do
             trap '"$stand/stand" down "$tree"' EXIT
             told_up=$("$stand/stand" up "$tree")
             eval "$told_up"
+            printf -v "servers_$role" '%s' "$PERF_SERVERS"
             told=(
                 --config "PERF_RUN=$run" --config "PERF_ROLE=$role"
                 --config "PERF_ROUND=$round" --config "PERF_REF=$ref"
@@ -130,6 +156,12 @@ for name in "${names[@]}"; do
             trap - EXIT
         done
     done
+    differing=$(differ "$servers_baseline" "$servers_candidate")
+    if [ -n "$differing" ]; then
+        echo "$name: the roles differ beside the code, their PERF_SERVERS in the" \
+            "report telling how; the numbers of these services compare not:"
+        echo "$differing" | sed 's/^/  /'
+    fi
     options_of_run=("${options[@]}")
     options=("${options[@]}" "${trial[@]}")
     perf "$name" analyze "$run"

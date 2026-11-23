@@ -252,7 +252,7 @@ The stories checked against the cheat sheets of OWASP (2026-11-20):
 | OWASP | Built | To build |
 |---|---|---|
 | The storage of a password | scrypt of OWASP, the PHC format, a compare in constant time | the hashers, their cost, the rehash ([password.1.6](methods/password.md#password-1-6)) |
-| The strength of a password | the policies as operations, no rule of composition | the length and the leaked ones ([password.2.4](methods/password.md#password-2-4)) |
+| The strength of a password | the policies as operations, no rule of composition; the length of OWASP by default, the leaked ones refused ([password.2.4](methods/password.md#password-2-4)) | — |
 | The messages and the timing | one reply, the dummy hash, the floor ([methods.4.2](methods/README.md#methods-4-2)) | the same for the recovery and the ban |
 | The throttle | the answers of an attempt limited | the ban by the identifier ([methods.4.3](methods/README.md#methods-4-3)) |
 | The change of a password, the re-authentication | — | [password.1.4](methods/password.md#password-1-4), [sessions.4.1](sessions.md#sessions-4-1) |
@@ -352,7 +352,9 @@ order (the user, 2026-11-20):
     `hasher_default` with no default, the attributes `SCRYPT_*` of
     `AuthPassword` moved to the hasher: a minor release. Built.
 11. [password.2.4](methods/password.md#password-2-4): the policies of
-    OWASP, the length in the core, the leaked passwords an extra.
+    OWASP, the length in the core, the default of `policies_set`, 15 to
+    128; the leaked passwords, `AuthPwnedPolicy`, in `contrib/policies/`,
+    the standard library alone, taken by the application. Built.
 12. [sessions.4.1](sessions.md#sessions-4-1),
     [password.1.4](methods/password.md#password-1-4),
     [sessions.3.8](sessions.md#sessions-3-8): the fresh proof, the change

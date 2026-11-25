@@ -255,11 +255,11 @@ The stories checked against the cheat sheets of OWASP (2026-11-20):
 | The strength of a password | the policies as operations, no rule of composition; the length of OWASP by default, the leaked ones refused ([password.2.4](methods/password.md#password-2-4)) | — |
 | The messages and the timing | one reply, the dummy hash, the floor ([methods.4.2](methods/README.md#methods-4-2)) | the same for the recovery and the ban |
 | The throttle | the answers of an attempt limited | the ban by the identifier ([methods.4.3](methods/README.md#methods-4-3)) |
-| The change of a password, the re-authentication | — | [password.1.4](methods/password.md#password-1-4), [sessions.4.1](sessions.md#sessions-4-1) |
+| The change of a password, the re-authentication | the old password verified, the other sessions closed ([password.1.4](methods/password.md#password-1-4)) | the fresh proof ([sessions.4.1](sessions.md#sessions-4-1)) |
 | The recovery of a password | — | [password.3.1](methods/password.md#password-3-1) |
 | The second factor | — | TOTP, the codes of recovery, the failure told ([factors](methods/factors.md)) |
 | The session: its token, its expiry, the logout | 256 random bits kept hashed; idle and absolute; revoked on the server; the own sessions listed and closed; the record | — |
-| The notifications | — | [sessions.3.8](sessions.md#sessions-3-8) |
+| The notifications | the password changed, by mail, a subscriber of its event ([sessions.3.8](sessions.md#sessions-3-8)) | the others of [sessions.3.8](sessions.md#sessions-3-8) |
 | The change of an email, the federation | — | [methods.5.1](methods/README.md#methods-5-1) |
 
 Out of the addon: the cookies, the browser, the TLS, of the client and the
@@ -355,10 +355,14 @@ order (the user, 2026-11-20):
     OWASP, the length in the core, the default of `policies_set`, 15 to
     128; the leaked passwords, `AuthPwnedPolicy`, in `contrib/policies/`,
     the standard library alone, taken by the application. Built.
-12. [sessions.4.1](sessions.md#sessions-4-1),
-    [password.1.4](methods/password.md#password-1-4),
-    [sessions.3.8](sessions.md#sessions-3-8): the fresh proof, the change
-    of the password, its mail the first of the notifications.
+12. [password.1.4](methods/password.md#password-1-4),
+    [sessions.3.8](sessions.md#sessions-3-8): the change of the password,
+    `Password.ChangePassword` of `ingot_auth.api.methods.password.v1`, its
+    event `AuthPasswordChanged` and the mail its subscriber, the first of
+    the notices, on the events of ingots ([events](../events/README.md)):
+    after the ingots release of the events, the auth moves onto it, then
+    builds the change. The fresh proof goes to 16, with its first
+    consumers (the user, 2026-11-24). Built.
 13. [password.3.1](methods/password.md#password-3-1): the recovery of the
     password by a code by mail.
 14. [methods.4.3](methods/README.md#methods-4-3): the ban of an identifier
@@ -368,8 +372,11 @@ order (the user, 2026-11-20):
     the second factor, TOTP first, the codes of recovery, the failure told,
     the change of a factor.
 16. [methods.5.1](methods/README.md#methods-5-1),
-    [factors.1.2](methods/factors.md#factors-1-2): the bind, the change of
-    an email, the code by mail as a factor; the providers after it.
+    [factors.1.2](methods/factors.md#factors-1-2),
+    [sessions.4.1](sessions.md#sessions-4-1): the bind, the change of an
+    identifier, a nickname or an email, each by its method, the list and the
+    unbind of the own identifiers, the fresh proof they take; the code by
+    mail as a factor; the providers after it.
 
 Later, each in a slice of its own once its needs are built:
 [methods.2.5](methods/README.md#methods-2-5),

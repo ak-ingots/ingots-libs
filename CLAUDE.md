@@ -133,5 +133,8 @@ Decided in [docs/adr](docs/adr/README.md); the essentials:
 - A comment tells what the code cannot: why it is so, a constraint from
   outside, a trap for the next change; never what the code, a name or a
   config key says already, nor the history of a change.
+  Reading it, one thinks "ah, so that's it"; else it goes.
+- A TODO names its issue of GitHub, `# TODO(#42): ...`: one without an
+  issue is never done. No issue, no TODO.
 - A decision that spans repositories gets an ADR here (process in 0001):
   written in English, `Proposed` until the user accepts it.

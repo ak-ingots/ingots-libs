@@ -82,7 +82,8 @@ Decided in [docs/adr](docs/adr/README.md); the essentials:
 - Linux is the target, macOS a by-product, Windows unsupported (0002).
 - Flat layout; a library is built and tested as a wheel outside the
   repository (0003).
-- Composition by inheritance and typed slots (0004); addons ship contract
+- Composition by inheritance and typed slots (0004), a slot
+  declared again checked by its kind (0018); addons ship contract
   tests run by every consumer (0005), under `testing/contracts` (0010); design
   principles and their priority (0006); code layout and naming: member and module order, verbs for
   methods, `Base` for incomplete classes, prefixed mixin members, the

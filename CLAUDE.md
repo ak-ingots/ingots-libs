@@ -5,6 +5,12 @@ repository cloned next to it. Keep it under 200 lines; link to the ADRs and
 READMEs instead of repeating them. Each package repository has its own
 `CLAUDE.md` that works without this one; rules stated here for the whole
 ecosystem are repeated there only when a package needs them in isolation.
+Its sections are the same in every package: What this is, Layout,
+Commands, Commits and GitHub (one text), Rules (the shared ones first, then
+"Of this package"), Design. A part too large for it gets a `CLAUDE.md` of
+its own, and the map of a large package goes to
+`docs/contributing/architecture.md`; the build keeps every `CLAUDE.md` out
+of the wheel (`wheel-exclude`).
 
 ## Layout
 
@@ -124,5 +130,8 @@ Decided in [docs/adr](docs/adr/README.md); the essentials:
   framework's API through `intersphinx_mapping`.
 - Versioning: a static `version` in `pyproject.toml`, bumped with
   `uv version --bump`; tags are `vX.Y.Z`.
+- A comment tells what the code cannot: why it is so, a constraint from
+  outside, a trap for the next change; never what the code, a name or a
+  config key says already, nor the history of a change.
 - A decision that spans repositories gets an ADR here (process in 0001):
   written in English, `Proposed` until the user accepts it.

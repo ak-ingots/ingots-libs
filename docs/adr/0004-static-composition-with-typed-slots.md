@@ -4,7 +4,8 @@
 - Domains: design
 - Date: 2026-10-18
 - Deciders: Aliaksandr Karotki
-- Supersedes / Superseded by: —
+- Supersedes / Superseded by: — (its rule of the slot conflicts refined by
+  [0018](0018-check-a-slot-by-its-kind.md))
 
 > In the context of **composing an application from Ingots addons**, facing
 > **deep trees of units and entities that the application customizes at any

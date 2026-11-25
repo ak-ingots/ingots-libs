@@ -29,3 +29,4 @@ metadata, like the status: they may change in a record already accepted.
 | [0015](0015-keep-an-activity-log-in-each-addon.md) | Keep an activity log in each addon, of one shape | design, storage | Proposed |
 | [0016](0016-run-the-addons-in-examples.md) | Run the feature addons as applications in examples | process, tooling | Proposed |
 | [0017](0017-change-an-api-by-its-consumers.md) | Change an API by its consumers: one release, or steps | process, design, grpc | Proposed |
+| [0018](0018-check-a-slot-by-its-kind.md) | Check a slot declared again by its kind, an inherited one by its join | design | Proposed |

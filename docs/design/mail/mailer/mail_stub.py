@@ -62,13 +62,15 @@ class MailError(Exception):
 class MailHeaderError(MailError, ValueError):
     """A mail refused before sending: no address, or a line break in a header."""
 
+    args: tuple[str, str]
+
     @classmethod
     def create(cls, name: str) -> t.Self:
         return cls(f"a header unfit to send: {name}", name)
 
     @property
     def name(self) -> str:
-        return t.cast(str, self.args[1])
+        return self.args[1]
 
 
 class MailDeliveryError(MailError):
@@ -77,13 +79,15 @@ class MailDeliveryError(MailError):
     may succeed: no connection, a timeout, a reply of SMTP 4xx.
     """
 
+    args: tuple[str, str, bool]
+
     @classmethod
     def create(cls, reason: str, *, is_transient: bool) -> t.Self:
         return cls(f"a mail not delivered: {reason}", reason, is_transient)
 
     @property
     def is_transient(self) -> bool:
-        return t.cast(bool, self.args[2])
+        return self.args[2]
 
 
 # ingot_mail/mail/mailers.py

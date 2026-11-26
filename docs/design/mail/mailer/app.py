@@ -3,8 +3,6 @@ The consumers: an application sending by SMTP, a welcome mail of its own;
 its tests on the mailer in memory.
 """
 
-import typing as t
-
 from ingots_stub import Slot
 from mail_stub import (
     AiosmtplibMailer,
@@ -52,5 +50,5 @@ class TestProject(AppProject):
     mail = Slot(TestMailUnit)  # type: ignore[assignment]
 
 
-def get_memory_mailer(project: MailProject) -> MemoryMailer:
-    return t.cast(MemoryMailer, project.mail.mailer)
+def get_memory_mailer(project: TestProject) -> MemoryMailer:
+    return project.mail.mailer

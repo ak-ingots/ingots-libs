@@ -136,5 +136,11 @@ Decided in [docs/adr](docs/adr/README.md); the essentials:
   Reading it, one thinks "ah, so that's it"; else it goes.
 - A TODO names its issue of GitHub, `# TODO(#42): ...`: one without an
   issue is never done. No issue, no TODO.
+- A type is narrowed by an annotation in the class, not by `t.cast` at
+  each use: an entity its project or parent, `project: "AuthProject"`,
+  `parent: AuthProofsOwner`, a mixin too, a mixin of two projects naming a
+  type of both; an error its `args`, `args: tuple[str, int]`. `t.cast`
+  stays where no class can carry the type: a function whose parameter
+  cannot be narrowed, a value from a library or from outside.
 - A decision that spans repositories gets an ADR here (process in 0001):
   written in English, `Proposed` until the user accepts it.

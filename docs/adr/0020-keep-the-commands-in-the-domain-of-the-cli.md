@@ -56,5 +56,5 @@ if each package held its own, where `settings.py` holds them all.
 - The command line of an addon is read in one folder, as it is typed.
 - A command moved in the tree moves its module; a domain moved breaks its
   commands in mypy.
-- Every addon with commands follows: ingot-auth 0.12.0 does; ingot-grpcio
-  keeps `grpc/commands.py` until its next change of the command line.
+- Every addon with commands follows: ingot-auth since 0.12.0, ingot-grpcio
+  since its release after 0.17.0, `ingot_grpcio.cli.grpc`.
